@@ -353,9 +353,9 @@ function TriageSheet({
 
   return (
     <Drawer open onOpenChange={(o) => !o && onClose()}>
-      <DrawerContent className="max-h-[92dvh]">
+      <DrawerContent className="flex max-h-[92dvh] flex-col">
         <div
-          className="flex max-h-[88dvh] min-h-0 flex-col"
+          className="flex min-h-0 flex-1 flex-col"
           onTouchStart={(e) => (touchX.current = e.touches[0]?.clientX ?? null)}
           onTouchEnd={(e) => {
             if (touchX.current === null) return;
