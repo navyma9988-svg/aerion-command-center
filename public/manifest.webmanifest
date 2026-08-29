@@ -1,15 +1,19 @@
 {
-  "name": "DFW Airfield Command",
-  "short_name": "DFW Command",
-  "description": "Phone-first airfield operations and action triage for the DFW Airfield Program.",
+  "id": "/",
+  "name": "AERION Command Center",
+  "short_name": "AERION",
+  "description": "Night-ops command, movement, and action triage for DFW airfield operations.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
-  "background_color": "#12161c",
-  "theme_color": "#12161c",
+  "background_color": "#0A0D14",
+  "theme_color": "#0A0D14",
+  "categories": ["productivity", "business", "navigation"],
   "icons": [
     { "src": "/favicon.ico", "sizes": "48x48", "type": "image/x-icon" },
+    { "src": "/app-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
     { "src": "/app-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }

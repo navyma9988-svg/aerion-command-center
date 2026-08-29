@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="AERION radar mark">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="74%">
+      <stop offset="0" stop-color="#1A1F2B"/>
+      <stop offset="0.72" stop-color="#11151F"/>
+      <stop offset="1" stop-color="#0A0D14"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FFE08A"/>
+      <stop offset="0.48" stop-color="#E7B94A"/>
+      <stop offset="1" stop-color="#B77A16"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="#0A0D14"/>
+  <rect x="22" y="22" width="468" height="468" rx="101" fill="url(#bg)" stroke="#FFFFFF" stroke-opacity=".08" stroke-width="2"/>
+  <circle cx="256" cy="256" r="166" fill="none" stroke="#E7B94A" stroke-opacity=".08" stroke-width="2"/>
+  <circle cx="256" cy="256" r="122" fill="none" stroke="#E7B94A" stroke-opacity=".13" stroke-width="2"/>
+  <circle cx="256" cy="256" r="77" fill="none" stroke="#E7B94A" stroke-opacity=".24" stroke-width="3"/>
+  <path d="M256 90v20M256 402v20M90 256h20M402 256h20" stroke="#E7B94A" stroke-opacity=".52" stroke-linecap="round" stroke-width="6"/>
+  <g transform="rotate(32 256 256)">
+    <rect x="238" y="126" width="36" height="260" rx="16" fill="#0A0D14" stroke="#E7B94A" stroke-opacity=".45" stroke-width="3"/>
+    <path d="M256 144v224" stroke="#F7C95F" stroke-dasharray="18 14" stroke-linecap="round" stroke-width="5"/>
+  </g>
+  <path d="M256 256 351 153A150 150 0 0 1 397 256Z" fill="#E7B94A" opacity=".11"/>
+  <circle cx="256" cy="256" r="24" fill="#0A0D14" stroke="url(#gold)" stroke-width="7" filter="url(#glow)"/>
+  <circle cx="256" cy="256" r="7" fill="#FFE08A"/>
+  <circle cx="342" cy="190" r="10" fill="#E7B94A" stroke="#0A0D14" stroke-width="5"/>
+</svg>
