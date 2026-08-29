@@ -47,6 +47,10 @@ export interface OpsAlert {
   impact: string;
   state: AlertState;
   escalatesInMin?: number | undefined;
+  /** severity before configurable escalation rules were applied */
+  baseSeverity?: Severity | undefined;
+  /** which escalation rule promoted this item, if any */
+  escalationReason?: string | undefined;
   activity: { at: string; who: string; text: string }[];
 }
 
@@ -583,6 +587,12 @@ export const IMPACTS = [
 
 export type EventKind = "alert" | "action" | "runway" | "flight" | "weather" | "ramp";
 
+export interface EventDiff {
+  field: string;
+  from: string;
+  to: string;
+}
+
 export interface OpsEvent {
   id: string;
   at: string; // 24h CT
@@ -593,6 +603,8 @@ export interface OpsEvent {
   tags: string[];
   /** what changed, for the "since you last looked" ribbon */
   change?: "new" | "escalated" | "updated" | "cleared" | undefined;
+  /** concise field-level diff shown on the "since last view" badge */
+  diff?: EventDiff[] | undefined;
   alertId?: string | undefined;
   actionId?: string | undefined;
   callsign?: string | undefined;
@@ -626,6 +638,7 @@ export const SEED_EVENTS: OpsEvent[] = [
   },
   {
     id: "EV-0803",
+    diff: [{ field: "ETA", from: "14:18", to: "14:40" }, { field: "State", from: "Approach", to: "Hold BOOVE" }],
     at: "14:02",
     kind: "flight",
     title: "QR730 entering hold — DOH arrival, 22 min airborne delay",
@@ -649,6 +662,7 @@ export const SEED_EVENTS: OpsEvent[] = [
   },
   {
     id: "EV-0805",
+    diff: [{ field: "Ceiling", from: "700 ft", to: "300 ft" }, { field: "Minima", from: "CAT I", to: "CAT II" }, { field: "Spacing", from: "5 NM", to: "6 NM" }],
     at: "14:22",
     kind: "weather",
     severity: "p1",
@@ -660,6 +674,7 @@ export const SEED_EVENTS: OpsEvent[] = [
   },
   {
     id: "EV-0806",
+    diff: [{ field: "13L/31R", from: "Closed", to: "Closed (day 3 of 5)" }],
     at: "14:29",
     kind: "runway",
     title: "13L/31R remains closed — pavement panel replacement day 3 of 5",
@@ -673,6 +688,7 @@ export const SEED_EVENTS: OpsEvent[] = [
 export const INCOMING_EVENTS: OpsEvent[] = [
   {
     id: "EV-0807",
+    diff: [{ field: "ETA", from: "15:04", to: "14:51" }, { field: "Stand", from: "C14", to: "C17" }],
     at: "14:36",
     kind: "flight",
     title: "AA2412 breaking hold — cleared ILS 17C, 12 NM final",
@@ -684,6 +700,7 @@ export const INCOMING_EVENTS: OpsEvent[] = [
   },
   {
     id: "EV-0808",
+    diff: [{ field: "Stands free", from: "9", to: "5" }],
     at: "14:39",
     kind: "ramp",
     severity: "p2",
@@ -696,6 +713,7 @@ export const INCOMING_EVENTS: OpsEvent[] = [
   },
   {
     id: "EV-0809",
+    diff: [{ field: "Severity", from: "P2", to: "P1" }, { field: "RVR", from: "1,600 ft", to: "1,200 ft" }],
     at: "14:43",
     kind: "weather",
     severity: "p1",
@@ -707,6 +725,7 @@ export const INCOMING_EVENTS: OpsEvent[] = [
   },
   {
     id: "EV-0810",
+    diff: [{ field: "Evidence", from: "0 files", to: "1 file" }],
     at: "14:47",
     kind: "action",
     severity: "p3",
@@ -718,6 +737,7 @@ export const INCOMING_EVENTS: OpsEvent[] = [
   },
   {
     id: "EV-0811",
+    diff: [{ field: "Stand C14", from: "Out of service", to: "In service" }],
     at: "14:51",
     kind: "ramp",
     title: "Stand C14 restored — jet bridge hydraulics tested and signed off",
@@ -729,6 +749,7 @@ export const INCOMING_EVENTS: OpsEvent[] = [
   },
   {
     id: "EV-0812",
+    diff: [{ field: "17L/35R", from: "Active", to: "Inspection" }],
     at: "14:55",
     kind: "runway",
     severity: "p2",
@@ -740,6 +761,7 @@ export const INCOMING_EVENTS: OpsEvent[] = [
   },
   {
     id: "EV-0813",
+    diff: [{ field: "Off blocks", from: "14:32", to: "14:59" }, { field: "Delay", from: "+9 min", to: "+27 min" }],
     at: "14:59",
     kind: "flight",
     title: "WN1466 pushed — DEN departure off blocks, +27 min",
@@ -751,6 +773,7 @@ export const INCOMING_EVENTS: OpsEvent[] = [
   },
   {
     id: "EV-0814",
+    diff: [{ field: "Ceiling", from: "300 ft", to: "500 ft" }, { field: "Minima", from: "CAT II", to: "CAT I review" }],
     at: "15:03",
     kind: "weather",
     title: "Ceiling improving — 500 ft reported, CAT I review at 1515",
@@ -776,3 +799,24 @@ export const CHANGE_LABEL: Record<NonNullable<OpsEvent["change"]>, string> = {
   updated: "Updated",
   cleared: "Cleared",
 };
+
+/** Roles an operator can @mention inside a disruption note. */
+export const ROLES = [
+  { handle: "ops", label: "Airfield Ops", who: "A. Dadian" },
+  { handle: "ramp", label: "Ramp Control", who: "K. Patel" },
+  { handle: "maint", label: "Airfield Maintenance", who: "R. Nunez" },
+  { handle: "tower", label: "DFW Tower", who: "Tower Watch" },
+  { handle: "duty", label: "Duty Manager", who: "M. Okafor" },
+] as const;
+export type Role = (typeof ROLES)[number];
+
+export const AUDIT_KIND_LABEL = {
+  raised: "Raised",
+  ack: "Acknowledged",
+  triage: "Status change",
+  note: "Operator note",
+  resolve: "Resolved",
+  reopen: "Reopened",
+  escalation: "Auto-escalation",
+} as const;
+export type AuditKind = keyof typeof AUDIT_KIND_LABEL;
