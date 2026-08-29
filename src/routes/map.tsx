@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useOps } from "@/lib/ops-store";
 import { FLIGHTS, RUNWAYS, TERMINAL_HEALTH, WIND, type Flight } from "@/lib/airfield-data";
-import { AirfieldRadar } from "@/components/airfield-radar";
+import { AirfieldRadar, ALL_FILTERS, type RadarFilters } from "@/components/airfield-radar";
 import { cn } from "@/lib/utils";
 import { Plane, Crosshair, List } from "lucide-react";
 import {
@@ -12,6 +12,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+
 
 type Layer = "gates" | "actions" | "work";
 
