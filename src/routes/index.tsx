@@ -116,6 +116,7 @@ function PulsePage() {
           </h2>
           <Link
             to="/alerts"
+            search={{ item: "", status: "open", severity: "", terminal: "", runway: "" }}
             className="press inline-flex min-h-11 items-center gap-1 text-xs font-medium text-cyan"
           >
             Triage <ChevronRight aria-hidden className="size-4" />
