@@ -183,17 +183,32 @@ export function OpsProvider({ children }: { children: ReactNode }) {
     [events, seenIds],
   );
 
-  const notifications = useMemo<OpsNotification[]>(
+  const candidates = useMemo<OpsEvent[]>(
     () =>
       events
         .filter((e) => e.change === "new" || e.change === "escalated")
         .filter((e) => !dismissedIds.includes(e.id))
-        .filter((e) => !SEED_EVENTS.some((s) => s.id === e.id))
-        .map((e) => ({ id: e.id, event: e, read: readIds.includes(e.id) })),
-    [events, readIds, dismissedIds],
+        .filter((e) => !SEED_EVENTS.some((s) => s.id === e.id)),
+    [events, dismissedIds],
   );
 
+  const notifications = useMemo<OpsNotification[]>(
+    () =>
+      candidates
+        .filter((e) => notifPrefs.severities.includes(e.severity ?? "p3"))
+        .filter((e) => notifPrefs.terminals.includes(eventTerminal(e)))
+        .map((e) => ({ id: e.id, event: e, read: readIds.includes(e.id) })),
+    [candidates, readIds, notifPrefs],
+  );
+
+  const mutedCount = candidates.length - notifications.length;
+
+  const quietActive =
+    notifPrefs.quietEnabled &&
+    inQuietWindow(clock, notifPrefs.quietStart, notifPrefs.quietEnd);
+
   const unreadCount = notifications.filter((n) => !n.read).length;
+
 
   const markEventsSeen = useCallback(() => setSeenIds(events.map((e) => e.id)), [events]);
   const markNotificationRead = useCallback(
