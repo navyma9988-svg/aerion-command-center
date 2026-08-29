@@ -47,6 +47,10 @@ export interface OpsAlert {
   impact: string;
   state: AlertState;
   escalatesInMin?: number | undefined;
+  /** severity before configurable escalation rules were applied */
+  baseSeverity?: Severity | undefined;
+  /** which escalation rule promoted this item, if any */
+  escalationReason?: string | undefined;
   activity: { at: string; who: string; text: string }[];
 }
 
