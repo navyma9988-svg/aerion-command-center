@@ -67,35 +67,47 @@ function PulsePage() {
 
   return (
     <div className="stagger-in space-y-4">
-      <section className="rounded-xl border border-border bg-card p-4">
+      <section
+        className={cn(
+          "surface-card relative overflow-hidden",
+          (simulation || openAlerts.some((a) => a.severity === "p1")) && "hero-degraded",
+        )}
+      >
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
           <div className="min-w-0">
-            <h1 className="text-xl font-bold">DFW Airfield Pulse</h1>
-            <p className="mono-data text-xs text-muted-foreground">
-              As of {AIRPORT.shiftDate.slice(5)} {AIRPORT.asOf} {AIRPORT.timezone} · synced {syncedAt}
-            </p>
+            <p className="text-[13px] font-medium text-muted-foreground">DFW Airfield Pulse</p>
+            <h1 className="mt-1 text-[28px] leading-tight">
+              {WIND.approach} <span className="text-muted-foreground">·</span> {WIND.flow}
+            </h1>
           </div>
           <button
             type="button"
             onClick={refresh}
-            className="press grid size-11 shrink-0 place-items-center rounded-lg border border-border hover:bg-secondary"
+            className="press grid size-11 shrink-0 place-items-center rounded-xl bg-elevated text-muted-foreground hover:text-foreground"
             aria-label="Refresh program data"
           >
             <RefreshCw aria-hidden className={cn("size-4", syncing && "animate-spin")} />
           </button>
         </div>
-        <p className="mt-4 text-4xl font-bold">
-          <span className="mono-data">{counts.open}</span>{" "}
-          <span className="text-base font-medium text-muted-foreground">
-            open actions across the program
+        <p className="mt-2 flex flex-wrap items-center text-[13px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <Wind aria-hidden className="size-3.5" />
+            <span className="mono-data">
+              {WIND.dir}° / {WIND.kt}kt
+            </span>
+          </span>
+          <span className="dot-sep">
+            As of <span className="mono-data">{AIRPORT.asOf}</span> {AIRPORT.timezone}
+          </span>
+          <span className="dot-sep">
+            synced <span className="mono-data">{syncedAt}</span>
           </span>
         </p>
-        <p className="mono-data mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1">
-            <Wind aria-hidden className="size-3.5" /> {WIND.dir}° / {WIND.kt}kt
+        <p className="mt-5 flex items-baseline gap-2">
+          <span className="mono-data text-5xl font-bold tracking-tight text-amber">
+            <CountUp value={counts.open} />
           </span>
-          <span>{WIND.flow}</span>
-          <span className="text-amber">{WIND.approach}</span>
+          <span className="text-[15px] font-medium text-muted-foreground">open actions</span>
         </p>
       </section>
 
@@ -109,39 +121,47 @@ function PulsePage() {
         <StatTile label="Closing" value={counts.closing} sub="sign-off pending" tone="cyan" />
       </section>
 
-      <section aria-labelledby="disrupt-h" className="rounded-xl border border-border bg-card p-4">
+      <section aria-labelledby="disrupt-h" className="surface-card">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-          <h2 id="disrupt-h" className="text-sm font-bold">
-            Open disruptions
-          </h2>
+          <h2 id="disrupt-h">Open disruptions</h2>
           <Link
             to="/alerts"
             search={{ item: "", status: "open", severity: "", terminal: "", runway: "" }}
-            className="press inline-flex min-h-11 items-center gap-1 text-xs font-medium text-cyan"
+            className="press inline-flex min-h-11 items-center gap-1 text-[13px] font-semibold text-amber"
           >
             Triage <ChevronRight aria-hidden className="size-4" />
           </Link>
         </div>
         {openAlerts.length === 0 ? (
-          <p className="mt-2 text-sm text-muted-foreground">Nothing open. Board is clear.</p>
+          <div className="flex flex-col items-center gap-2 py-8 text-center">
+            <span className="grid size-11 place-items-center rounded-full bg-success/12 text-success">
+              <Check aria-hidden className="size-5" />
+            </span>
+            <p className="text-[15px] font-semibold">Board is clear</p>
+            <p className="text-[13px] text-muted-foreground">
+              No open disruptions on the airfield right now.
+            </p>
+          </div>
         ) : (
-          <ul className="mt-2 space-y-2">
+          <ul className="mt-1 divide-y divide-border">
             {openAlerts.slice(0, 3).map((a) => (
-              <li key={a.id} className="flex items-start gap-2 text-sm">
+              <li key={a.id} className="row-tap">
                 <span
                   className={cn(
-                    "mono-data mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold",
-                    a.severity === "p1" ? "bg-coral/20 text-coral" : "bg-amber/20 text-amber",
+                    "grid size-9 shrink-0 place-items-center rounded-full",
+                    a.severity === "p1" ? "bg-coral/12 text-coral" : "bg-amber/12 text-amber",
                   )}
                 >
-                  {a.severity.toUpperCase()}
+                  <TriangleAlert aria-hidden className="size-[18px]" />
                 </span>
-                <span className="min-w-0">
-                  <span className="line-clamp-2">{a.title}</span>
-                  <span className="mono-data block text-[11px] text-muted-foreground">
-                    {a.time} {AIRPORT.timezone} · {a.runway ?? a.terminal ?? "Airside"}
+                <span className="min-w-0 flex-1">
+                  <span className="line-clamp-2 text-[15px] font-semibold leading-snug">{a.title}</span>
+                  <span className="mt-0.5 block text-[13px] text-muted-foreground">
+                    {a.severity.toUpperCase()}
+                    <span className="dot-sep">{a.runway ?? a.terminal ?? "Airside"}</span>
                   </span>
                 </span>
+                <span className="mono-data shrink-0 text-[13px] text-muted-foreground">{a.time}</span>
               </li>
             ))}
           </ul>
