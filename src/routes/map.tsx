@@ -174,6 +174,25 @@ function MapPage() {
         )}
       </div>
 
+      <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Traffic filters">
+        {FILTER_META.map((f) => (
+          <button
+            key={f.k}
+            type="button"
+            aria-pressed={filters[f.k]}
+            onClick={() => setFilters((p) => ({ ...p, [f.k]: !p[f.k] }))}
+            className={cn(
+              "press min-h-11 shrink-0 rounded-full border px-4 text-xs font-medium",
+              filters[f.k]
+                ? "border-cyan/50 bg-cyan/10 text-cyan"
+                : "border-border bg-card text-muted-foreground",
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       {listView ? (
         <AirfieldList onFocus={(f) => setSearch({ focus: f.callsign })} />
       ) : (
@@ -182,7 +201,9 @@ function MapPage() {
             layer={layer}
             focus={focus}
             terminal={terminal}
+            filters={filters}
             runwayStatus={runwayStatus}
+
             alertsByTerminal={alertsByTerminal}
             onFocusFlight={(f) => setSearch({ focus: f.callsign === focus ? "" : f.callsign, terminal: "" })}
             onSelectTerminal={(t) => setSearch({ terminal: t, focus: "" })}
