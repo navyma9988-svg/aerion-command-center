@@ -288,6 +288,16 @@ export function OpsProvider({ children }: { children: ReactNode }) {
     completeAction,
     clock,
     lastSync,
+    events,
+    unseenEventIds,
+    markEventsSeen,
+    streaming,
+    setStreaming,
+    notifications,
+    unreadCount,
+    markNotificationRead,
+    markAllNotificationsRead,
+    dismissNotification,
   };
 
   return <OpsContext.Provider value={value}>{children}</OpsContext.Provider>;
