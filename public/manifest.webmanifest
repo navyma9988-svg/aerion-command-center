@@ -1,0 +1,15 @@
+{
+  "name": "DFW Airfield Command",
+  "short_name": "DFW Command",
+  "description": "Phone-first airfield operations and action triage for the DFW Airfield Program.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#12161c",
+  "theme_color": "#12161c",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "48x48", "type": "image/x-icon" },
+    { "src": "/app-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
