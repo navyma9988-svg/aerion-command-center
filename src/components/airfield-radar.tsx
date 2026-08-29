@@ -625,10 +625,11 @@ export function AirfieldRadar({
                   }
                 }}
               >
+                <circle cx={p.x} cy={p.y} r="78" className="fill-transparent" pointerEvents="all" />
                 <path
                   d={d}
                   className="fill-none stroke-transparent"
-                  strokeWidth="52"
+                  strokeWidth="156"
                   pointerEvents="stroke"
                 />
                 <path
@@ -735,7 +736,7 @@ export function AirfieldRadar({
                   className="hit fill-transparent stroke-transparent"
                   cx={x}
                   cy={y}
-                  r="26"
+                  r="78"
                   strokeWidth="3"
                   pointerEvents="all"
                 />

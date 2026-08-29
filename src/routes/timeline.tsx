@@ -111,7 +111,7 @@ function TimelinePage() {
               aria-pressed={speed === s}
               onClick={() => setSpeed(s)}
               className={cn(
-                "press mono-data min-h-11 rounded-full border px-3 text-xs font-semibold",
+                "press mono-data min-h-11 min-w-11 rounded-full border px-3 text-xs font-semibold",
                 speed === s
                   ? "border-cyan bg-cyan/15 text-cyan"
                   : "border-border text-muted-foreground",
