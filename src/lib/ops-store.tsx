@@ -133,9 +133,17 @@ export function OpsProvider({ children }: { children: ReactNode }) {
   const [lastSync, setLastSync] = useState("14:32:07");
   const [streamIndex, setStreamIndex] = useState(0);
   const [streaming, setStreaming] = useState(true);
+  const [speed, setSpeed] = useState(1);
   const [seenIds, setSeenIds] = useState<string[]>(() => SEED_EVENTS.map((e) => e.id));
   const [readIds, setReadIds] = useState<string[]>([]);
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
+  const [notifPrefs, setNotifPrefsState] = useState<NotifPrefs>({
+    severities: ["p1", "p2", "p3"],
+    terminals: NOTIF_TERMINALS,
+    quietEnabled: false,
+    quietStart: "22:00",
+    quietEnd: "06:00",
+  });
   const currentUser = "A. Dadian";
 
   // Stream one deterministic event at a time while the board is open.
@@ -143,10 +151,11 @@ export function OpsProvider({ children }: { children: ReactNode }) {
     if (!streaming) return;
     const t = window.setInterval(
       () => setStreamIndex((i) => (i >= INCOMING_EVENTS.length ? i : i + 1)),
-      9000,
+      Math.max(600, Math.round(9000 / speed)),
     );
     return () => window.clearInterval(t);
-  }, [streaming]);
+  }, [streaming, speed]);
+
 
   const events = useMemo<OpsEvent[]>(() => {
     const live = INCOMING_EVENTS.slice(0, streamIndex).slice().reverse();
