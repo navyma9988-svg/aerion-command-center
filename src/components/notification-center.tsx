@@ -55,10 +55,10 @@ export function NotificationToasts() {
     if (!fresh.length) return;
     setShown((p) => [...p, ...fresh.map((f) => f.id)]);
     if (quietActive) return;
-    setQueue((p) => [...fresh, ...p].slice(0, 3));
+    setQueue((p) => [...fresh, ...p].slice(0, 1));
     const t = window.setTimeout(
       () => setQueue((p) => p.filter((q) => !fresh.some((f) => f.id === q.id))),
-      9000,
+      5000,
     );
     return () => window.clearTimeout(t);
   }, [notifications, shown, quietActive]);
@@ -70,13 +70,13 @@ export function NotificationToasts() {
     <div
       role="region"
       aria-label="New disruption notifications"
-      className="safe-top pointer-events-none fixed inset-x-0 top-16 z-40 mx-auto flex max-w-md flex-col gap-2 px-3 lg:left-56 lg:right-auto lg:mx-0 lg:max-w-sm"
+      className="safe-bottom pointer-events-none fixed inset-x-0 bottom-24 z-40 mx-auto flex max-w-md flex-col gap-2 px-3 lg:inset-x-auto lg:bottom-auto lg:right-5 lg:top-20 lg:mx-0 lg:max-w-sm"
     >
       {queue.map((n) => (
         <div
           key={n.id}
           role="status"
-          className="pointer-events-auto flex items-start gap-2 rounded-xl border border-border bg-elevated/95 p-3 shadow-lg backdrop-blur animate-in slide-in-from-top-2"
+          className="pointer-events-auto flex items-start gap-2 rounded-xl border border-border bg-elevated/95 p-3 shadow-[var(--shadow-card)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 lg:slide-in-from-top-2"
         >
           <span aria-hidden className={cn("mt-1.5 size-2 shrink-0 rounded-full", severityDot(n.event))} />
           <button
