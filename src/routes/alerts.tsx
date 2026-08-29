@@ -127,7 +127,7 @@ function AlertsPage() {
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <div className="min-w-0">
           <h1 className="text-[26px] font-bold tracking-tight">Disruption triage</h1>
-          <p className="mono-data text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {filtered.length} of {alerts.length} items · {AIRPORT.asOf} {AIRPORT.timezone}
           </p>
         </div>
@@ -137,7 +137,7 @@ function AlertsPage() {
           aria-pressed={mineOnly}
           className={cn(
             "press min-h-11 shrink-0 rounded-full border px-4 text-sm font-medium",
-            mineOnly ? "border-cyan bg-cyan/15 text-cyan" : "border-border bg-card text-muted-foreground",
+            mineOnly ? "border-amber bg-amber/12 text-amber" : "border-border bg-card text-muted-foreground",
           )}
         >
           Mine
@@ -207,7 +207,7 @@ function AlertsPage() {
               setMineOnly(false);
               setSearch({ severity: "", terminal: "", runway: "" });
             }}
-            className="press min-h-11 text-xs font-medium text-cyan"
+            className="press min-h-11 text-xs font-medium text-amber"
           >
             Clear all · {activeFilterCount} filter{activeFilterCount === 1 ? "" : "s"}
           </button>
@@ -270,7 +270,7 @@ function FilterChip({
         !active && "border-border bg-card text-muted-foreground",
         active && tone === "coral" && "border-coral bg-coral/15 text-coral",
         active && tone === "amber" && "border-amber bg-amber/15 text-amber",
-        active && (tone === "cyan" || !tone) && "border-cyan bg-cyan/15 text-cyan",
+        active && (tone === "cyan" || !tone) && "border-amber bg-amber/12 text-amber",
       )}
     >
       {children}
@@ -293,37 +293,37 @@ function AlertCard({
         <div className="flex flex-wrap items-center gap-2">
           <span
             className={cn(
-              "mono-data rounded px-1.5 py-0.5 text-[10px] font-semibold",
+              "mono-data rounded px-1.5 py-0.5 text-[11px] font-semibold",
               alert.severity === "p1" && "bg-coral/20 text-coral",
               alert.severity === "p2" && "bg-amber/20 text-amber",
-              alert.severity === "p3" && "bg-cyan/20 text-cyan",
+              alert.severity === "p3" && "bg-amber/12 text-amber",
             )}
           >
             {alert.severity.toUpperCase()}
           </span>
           <span className="mono-data text-xs">{alert.id}</span>
-          <span className="mono-data text-[11px] text-muted-foreground">
+          <span className="text-[12px] text-muted-foreground">
             {alert.time} {AIRPORT.timezone} · {alert.source}
           </span>
-          <span className="mono-data ml-auto text-[10px] uppercase text-muted-foreground">
+          <span className="ml-auto text-[11px] uppercase text-muted-foreground">
             {STATE_LABEL[alert.state]}
           </span>
         </div>
         <p className="mt-1.5 text-sm font-medium">{alert.title}</p>
-        <p className="mono-data mt-1 text-[11px] text-muted-foreground">
+        <p className="mt-1 text-[12px] text-muted-foreground">
           {[alert.runway, alert.taxiway && `Taxiway ${alert.taxiway}`, alert.stand, alert.terminal && `Terminal ${alert.terminal}`]
             .filter(Boolean)
             .join(" · ") || "Airside"}{" "}
           · {alert.impact}
         </p>
         {alert.escalationReason && (
-          <p className="mono-data mt-1 flex items-center gap-1 text-[11px] text-amber">
+          <p className="mt-1 flex items-center gap-1 text-[12px] text-amber">
             <TrendingUp aria-hidden className="size-3" /> Auto-ranked {alert.severity.toUpperCase()} ·{" "}
             {alert.escalationReason}
           </p>
         )}
         {alert.state === "new" && alert.escalatesInMin && (
-          <p className="mono-data mt-1 text-[11px] text-coral">
+          <p className="mt-1 text-[12px] text-coral">
             Escalates to program manager in {alert.escalatesInMin}m
           </p>
         )}
@@ -333,7 +333,7 @@ function AlertCard({
           <button
             type="button"
             onClick={onAck}
-            className="press inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-cyan"
+            className="press inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-amber"
           >
             <Check aria-hidden className="size-4" /> Acknowledge
           </button>
@@ -408,16 +408,16 @@ function TriageSheet({
             <div className="flex items-center gap-2">
               <span
                 className={cn(
-                  "mono-data rounded px-1.5 py-0.5 text-[10px] font-semibold",
+                  "mono-data rounded px-1.5 py-0.5 text-[11px] font-semibold",
                   alert.severity === "p1" && "bg-coral/20 text-coral",
                   alert.severity === "p2" && "bg-amber/20 text-amber",
-                  alert.severity === "p3" && "bg-cyan/20 text-cyan",
+                  alert.severity === "p3" && "bg-amber/12 text-amber",
                 )}
               >
                 {SEVERITY_LABEL[alert.severity]}
               </span>
               <span className="mono-data text-xs">{alert.id}</span>
-              <span className="mono-data ml-auto text-[11px] text-muted-foreground">
+              <span className="ml-auto text-[12px] text-muted-foreground">
                 {position} of {total}
               </span>
             </div>
@@ -435,7 +435,7 @@ function TriageSheet({
                       i <= stepIndex ? "bg-cyan" : "bg-secondary",
                     )}
                   />
-                  <span className="mono-data text-[10px] text-muted-foreground">{s.label}</span>
+                  <span className="text-[11px] text-muted-foreground">{s.label}</span>
                 </li>
               ))}
             </ol>
@@ -583,7 +583,7 @@ function TriageSheet({
 
             <section className="space-y-2 rounded-xl border border-border p-3">
               <h3 className="text-[17px] font-semibold tracking-tight">Operator note</h3>
-              <p className="mono-data text-[11px] text-muted-foreground">
+              <p className="text-[12px] text-muted-foreground">
                 Mention a role to page them: {ROLES.map((r) => `@${r.handle}`).join(" ")}
               </p>
               <label className="sr-only" htmlFor="operator-note">
@@ -603,7 +603,7 @@ function TriageSheet({
                     key={r.handle}
                     type="button"
                     onClick={() => setOperatorNote((v) => `${v}${v && !v.endsWith(" ") ? " " : ""}@${r.handle} `)}
-                    className="press mono-data min-h-11 rounded-full border border-border px-3 text-[11px] text-muted-foreground"
+                    className="press min-h-11 rounded-full border border-border px-3 text-[12px] text-muted-foreground"
                   >
                     @{r.handle}
                   </button>
@@ -625,11 +625,11 @@ function TriageSheet({
             <section>
               <div className="flex items-center gap-2">
                 <h3 className="text-[17px] font-semibold tracking-tight">Audit trail</h3>
-                <span className="mono-data inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[11px] uppercase tracking-wide text-muted-foreground">
                   <Lock aria-hidden className="size-3" /> Immutable · {trail.length} entries
                 </span>
               </div>
-              <p className="mono-data mt-1 text-[11px] text-muted-foreground">
+              <p className="mt-1 text-[12px] text-muted-foreground">
                 Append-only. Acknowledgements, status changes and notes are never edited or deleted.
               </p>
 
@@ -639,16 +639,16 @@ function TriageSheet({
                   .reverse()
                   .map((ev) => (
                     <li key={ev.id} className="text-sm">
-                      <p className="mono-data text-[10px] uppercase tracking-wide text-cyan">
+                      <p className="mono-data text-[11px] uppercase tracking-wide text-amber">
                         {AUDIT_KIND_LABEL[ev.kind]}
                       </p>
                       <p>{ev.text}</p>
                       {ev.mentions?.length ? (
-                        <p className="mono-data text-[11px] text-amber">
+                        <p className="text-[12px] text-amber">
                           Paged {ev.mentions.map((m) => `@${m}`).join(" ")}
                         </p>
                       ) : null}
-                      <p className="mono-data text-[11px] text-muted-foreground">
+                      <p className="text-[12px] text-muted-foreground">
                         {ev.who} · {ev.at} {AIRPORT.timezone}
                       </p>
                     </li>
@@ -666,7 +666,7 @@ function TriageSheet({
               >
                 <ChevronLeft aria-hidden className="size-5" />
               </button>
-              <p className="mono-data text-[11px] text-muted-foreground">Swipe or use arrow keys</p>
+              <p className="text-[12px] text-muted-foreground">Swipe or use arrow keys</p>
               <button
                 type="button"
                 onClick={() => onStep(1)}
@@ -728,7 +728,7 @@ function EscalationRulesPanel() {
       >
         <Sliders aria-hidden className="size-4 text-amber" />
         Escalation rules
-        <span className="mono-data ml-auto text-[11px] text-muted-foreground">
+        <span className="ml-auto text-[12px] text-muted-foreground">
           {active} active · SLA {slaMinutes}m
         </span>
       </button>
@@ -744,14 +744,14 @@ function EscalationRulesPanel() {
               />
               <span>
                 <span className="font-medium">{r.label}</span>
-                <span className="mono-data block text-[11px] text-muted-foreground">
+                <span className="block text-[12px] text-muted-foreground">
                   {r.description} Promotes to {r.to.toUpperCase()}.
                 </span>
               </span>
             </label>
           ))}
           <div>
-            <label htmlFor="sla-window" className="mono-data text-[11px] text-muted-foreground">
+            <label htmlFor="sla-window" className="text-[12px] text-muted-foreground">
               Acknowledgement SLA window: {slaMinutes} min
             </label>
             <input
@@ -765,7 +765,7 @@ function EscalationRulesPanel() {
               className="mt-2 w-full accent-[var(--amber)]"
             />
           </div>
-          <p className="mono-data text-[11px] text-muted-foreground">
+          <p className="text-[12px] text-muted-foreground">
             Matching items are re-ranked automatically — worst first, without touching the audit trail.
           </p>
         </div>

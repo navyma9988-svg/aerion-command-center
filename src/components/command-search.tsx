@@ -97,7 +97,7 @@ export function CommandSearch({
               <span className="text-muted-foreground">
                 {f.movement === "arrival" ? `${f.origin} → DFW` : `DFW → ${f.destination}`}
               </span>
-              <span className="mono-data ml-auto text-xs text-muted-foreground">{f.stand}</span>
+              <span className="ml-auto text-xs text-muted-foreground">{f.stand}</span>
             </CommandItem>
           ))}
         </CommandGroup>
@@ -111,7 +111,7 @@ export function CommandSearch({
             >
               <Building2 aria-hidden className="text-amber" />
               Terminal {t.terminal}
-              <span className="mono-data ml-auto text-xs text-muted-foreground">
+              <span className="ml-auto text-xs text-muted-foreground">
                 {t.standsAvailable}/{t.standsTotal} stands
               </span>
             </CommandItem>

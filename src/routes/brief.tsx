@@ -79,7 +79,7 @@ function BriefPage() {
     <div className="space-y-4">
       <header>
         <h1 className="text-[26px] font-bold tracking-tight">DFW Airfield Brief</h1>
-        <p className="mono-data text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Shift start 0600 {AIRPORT.timezone} · reads today's register
         </p>
       </header>
@@ -90,7 +90,7 @@ function BriefPage() {
           two-minute brief: what's burning, what's due before end of shift, and who's carrying the
           most risk.
         </p>
-        <p className="mono-data mt-3 text-[11px] text-muted-foreground">
+        <p className="mt-3 text-[12px] text-muted-foreground">
           {overdue.length} overdue · {dueToday.length} due today · {closing.length} awaiting closure ·
           Stalest: {overdue[1]?.id ?? overdue[0]?.id ?? "—"}, {overdue[1]?.updatedDaysAgo ?? 0} days
           without update
@@ -127,7 +127,7 @@ function BriefPage() {
         {phase === "done" ? "Regenerate brief" : "Generate brief"}
       </button>
 
-      <p className="mono-data text-center text-[11px] text-muted-foreground">Demo visuals only</p>
+      <p className="text-center text-[12px] text-muted-foreground">Demo visuals only</p>
     </div>
   );
 }
