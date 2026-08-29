@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useOps } from "@/lib/ops-store";
 import { FLIGHTS, RUNWAYS, TERMINAL_HEALTH, WIND, type Flight } from "@/lib/airfield-data";
+import { AirfieldRadar } from "@/components/airfield-radar";
 import { cn } from "@/lib/utils";
 import { Plane, Crosshair, List } from "lucide-react";
 import {
@@ -42,17 +43,6 @@ export const Route = createFileRoute("/map")({
   }),
   component: MapPage,
 });
-
-/** Terminal pier geometry in the 0-400 x 0-560 schematic space. */
-const PIERS = [
-  { t: "A", x: 118, y: 112 },
-  { t: "B", x: 258, y: 112 },
-  { t: "C", x: 258, y: 268 },
-  { t: "D", x: 118, y: 268 },
-  { t: "E", x: 118, y: 420 },
-] as const;
-
-const RUNWAY_X = [46, 78, 196, 226, 330, 358, 300];
 
 function MapPage() {
   const { alerts, simulation } = useOps();
@@ -135,245 +125,15 @@ function MapPage() {
         <AirfieldList onFocus={(f) => setSearch({ focus: f.callsign })} />
       ) : (
         <div className="overflow-hidden surface-card p-0">
-          <svg
-            viewBox="0 0 400 560"
-            className="h-[62dvh] w-full touch-pan-y"
-            role="group"
-            aria-label="DFW airfield schematic — seven runways, five terminal piers and 12 active aircraft. Use Tab to move between runways, piers and aircraft, then Enter or Space to focus."
-          >
-            <rect width="400" height="560" fill="transparent" />
-
-            {/* Runways */}
-            {RUNWAYS.map((r, i) => {
-              const status = runwayStatus.get(r.id) ?? "active";
-              const x = RUNWAY_X[i] ?? 200;
-              const short = r.id.startsWith("13");
-              return (
-                <g
-                  key={r.id}
-                  role="img"
-                  aria-label={`Runway ${r.id}, ${r.length}, ${
-                    status === "active"
-                      ? `active for ${r.flow} flow, ${WIND.approach}`
-                      : status === "notam"
-                        ? "restricted by NOTAM"
-                        : "closed"
-                  }`}
-                >
-                  <rect
-                    x={x}
-                    y={short ? 300 : 40}
-                    width="16"
-                    height={short ? 200 : 480}
-                    rx="3"
-                    className={cn(
-                      status === "closed" ? "fill-coral/20" : "fill-muted",
-                      "stroke-border",
-                    )}
-                    strokeWidth="1"
-                    transform={short ? `rotate(-32 ${x + 8} 400)` : undefined}
-                  />
-                  <line
-                    x1={x + 8}
-                    y1={short ? 310 : 50}
-                    x2={x + 8}
-                    y2={short ? 490 : 510}
-                    strokeWidth="2"
-                    strokeDasharray="10 14"
-                    className={cn(
-                      status === "active" && "stroke-amber",
-                      status === "notam" && "stroke-amber/40",
-                      status === "closed" && "stroke-coral",
-                    )}
-                    transform={short ? `rotate(-32 ${x + 8} 400)` : undefined}
-                  >
-                    {status === "active" && (
-                      <animate
-                        attributeName="stroke-dashoffset"
-                        from="24"
-                        to="0"
-                        dur="1.6s"
-                        repeatCount="indefinite"
-                      />
-                    )}
-                  </line>
-                  <text
-                    x={x + 8}
-                    y={short ? 296 : 32}
-                    textAnchor="middle"
-                    className={cn(
-                      "fill-muted-foreground text-[9px]",
-                      status === "closed" && "fill-coral",
-                    )}
-                    style={{ fontFamily: "var(--font-mono)" }}
-                  >
-                    {r.id.split("/")[0]}
-                  </text>
-                  {/* approach cone on active thresholds, south flow */}
-                  {status === "active" && !short && (
-                    <polygon
-                      points={`${x + 8},44 ${x - 6},14 ${x + 22},14`}
-                      className="fill-cyan/25"
-                    />
-                  )}
-                </g>
-              );
-            })}
-
-            {/* Construction zones */}
-            {layer === "work" && (
-              <>
-                <rect x="150" y="240" width="90" height="18" rx="4" className="fill-coral/25 stroke-coral" strokeDasharray="4 3" />
-                <text x="195" y="234" textAnchor="middle" className="fill-coral text-[9px]" style={{ fontFamily: "var(--font-mono)" }}>
-                  TWY B CLOSED
-                </text>
-                <rect x="150" y="404" width="70" height="16" rx="4" className="fill-amber/25 stroke-amber" strokeDasharray="4 3" />
-                <text x="185" y="398" textAnchor="middle" className="fill-amber text-[9px]" style={{ fontFamily: "var(--font-mono)" }}>
-                  E APRON POUR
-                </text>
-              </>
-            )}
-
-            {/* Terminals */}
-            {PIERS.map((p) => {
-              const health = TERMINAL_HEALTH.find((t) => t.terminal === p.t)!;
-              const selectedT = terminal === p.t;
-              const dim = (terminal && !selectedT) || (focus && focused?.terminal !== p.t);
-              return (
-                <g
-                  key={p.t}
-                  opacity={dim ? 0.4 : 1}
-                  role="button"
-                  tabIndex={0}
-                  aria-pressed={selectedT}
-                  aria-label={`Terminal ${p.t}: ${health.standsAvailable} of ${health.standsTotal} stands available, ${health.openActions} open airfield actions, ${health.overdueActions} overdue, security wait ${health.securityWaitMin} minutes${alertsByTerminal.get(p.t) ? `, ${alertsByTerminal.get(p.t)} active disruptions` : ""}. ${selectedT ? "Selected — activate to clear focus" : "Activate to focus this pier"}.`}
-                  className="cursor-pointer outline-none focus-visible:[&>rect]:stroke-cyan focus-visible:[&>rect]:stroke-[3]"
-                  onClick={() => setSearch({ terminal: selectedT ? "" : p.t, focus: "" })}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setSearch({ terminal: selectedT ? "" : p.t, focus: "" });
-                    }
-                  }}
-                >
-                  {/* enlarged hit area — keeps the tap target comfortably past 44px */}
-                  <rect
-                    x={p.x - 8}
-                    y={p.y - 8}
-                    width="80"
-                    height="96"
-                    rx="30"
-                    fill="transparent"
-                    className="pointer-events-auto"
-                  />
-                  <rect
-                    x={p.x}
-                    y={p.y}
-                    width="64"
-                    height="80"
-                    rx="26"
-                    className={cn("stroke-border", selectedT ? "fill-elevated" : "fill-secondary")}
-                    strokeWidth="1.5"
-                  />
-                  <text
-                    x={p.x + 32}
-                    y={p.y + 34}
-                    textAnchor="middle"
-                    className="fill-foreground text-[15px] font-bold"
-                  >
-                    {p.t}
-                  </text>
-                  {layer === "gates" && (
-                    <>
-                      {Array.from({ length: 6 }).map((_, i) => (
-                        <circle
-                          key={i}
-                          cx={p.x + 12 + (i % 3) * 20}
-                          cy={p.y + 52 + Math.floor(i / 3) * 14}
-                          r="3.5"
-                          className={
-                            i < Math.round((health.standsAvailable / health.standsTotal) * 6)
-                              ? "fill-success"
-                              : "fill-amber"
-                          }
-                        />
-                      ))}
-                    </>
-                  )}
-                  {layer === "actions" && (
-                    <>
-                      <circle
-                        cx={p.x + 32}
-                        cy={p.y + 58}
-                        r="12"
-                        className={health.overdueActions ? "fill-coral/25" : "fill-cyan/20"}
-                      />
-                      <text
-                        x={p.x + 32}
-                        y={p.y + 62}
-                        textAnchor="middle"
-                        className={cn("text-[10px]", health.overdueActions ? "fill-coral" : "fill-cyan")}
-                        style={{ fontFamily: "var(--font-mono)" }}
-                      >
-                        {health.openActions}
-                      </text>
-                    </>
-                  )}
-                  {alertsByTerminal.get(p.t) && (
-                    <circle cx={p.x + 58} cy={p.y + 8} r="5" className="fill-coral" />
-                  )}
-                </g>
-              );
-            })}
-
-            {/* Aircraft pucks */}
-            {FLIGHTS.map((f, i) => {
-              const rw = RUNWAY_X[RUNWAYS.findIndex((r) => r.id === f.runway)] ?? 200;
-              const x = rw + 8 + (i % 2 === 0 ? -22 : 22);
-              const y = 60 + f.progress * 420;
-              const isFocused = focused?.callsign === f.callsign;
-              const dim = (focus && !isFocused) || (terminal && f.terminal !== terminal);
-              return (
-                <g
-                  key={f.id}
-                  opacity={dim ? 0.35 : 1}
-                  role="button"
-                  tabIndex={0}
-                  aria-pressed={isFocused}
-                  aria-label={`${f.callsign}, ${f.type} ${f.movement === "arrival" ? `arriving from ${f.origin}` : `departing to ${f.destination}`}, runway ${f.runway}, stand ${f.stand} Terminal ${f.terminal}, ${f.status}${f.delayMin > 0 ? `, ${f.delayMin} minutes delayed` : ", on schedule"}. ${isFocused ? "Focused — activate to clear" : "Activate to focus and open flight detail"}.`}
-                  className="cursor-pointer outline-none focus-visible:[&>circle:first-of-type]:stroke-cyan focus-visible:[&>circle:first-of-type]:stroke-[3]"
-                  onClick={() => setSearch({ focus: isFocused ? "" : f.callsign, terminal: "" })}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setSearch({ focus: isFocused ? "" : f.callsign, terminal: "" });
-                    }
-                  }}
-                >
-                  <circle cx={x} cy={y} r="22" fill="transparent" className="pointer-events-auto" />
-                  <circle
-                    cx={x}
-                    cy={y}
-                    r={isFocused ? 11 : 7}
-                    className={cn(
-                      f.delayMin > 15 ? "fill-coral" : f.delayMin > 0 ? "fill-amber" : "fill-cyan",
-                    )}
-                  />
-                  <circle cx={x} cy={y} r={isFocused ? 18 : 0} className="fill-none stroke-cyan" strokeWidth="1.5" />
-                  {isFocused && (
-                    <text
-                      x={x + 22}
-                      y={y + 4}
-                      className="fill-foreground text-[10px]"
-                      style={{ fontFamily: "var(--font-mono)" }}
-                    >
-                      {f.callsign} · {f.stand}
-                    </text>
-                  )}
-                </g>
-              );
-            })}
-          </svg>
+          <AirfieldRadar
+            layer={layer}
+            focus={focus}
+            terminal={terminal}
+            runwayStatus={runwayStatus}
+            alertsByTerminal={alertsByTerminal}
+            onFocusFlight={(f) => setSearch({ focus: f.callsign === focus ? "" : f.callsign, terminal: "" })}
+            onSelectTerminal={(t) => setSearch({ terminal: t, focus: "" })}
+          />
 
           <p className="mono-data flex flex-wrap gap-3 border-t border-border px-3 py-2 text-[10px] text-muted-foreground">
             <span className="inline-flex items-center gap-1">
@@ -385,36 +145,40 @@ function MapPage() {
             <span className="inline-flex items-center gap-1">
               <span aria-hidden className="size-2 rounded-full bg-coral" /> 15+ min
             </span>
-            <span>Tap or Tab + Enter on an aircraft or pier to focus</span>
+            <span>Pinch or scroll to zoom · drag to pan · double-tap to zoom in</span>
           </p>
         </div>
       )}
 
-      {terminal && (
-        <TerminalPanel terminal={terminal} onClose={() => setSearch({ terminal: "" })} />
-      )}
+      <Drawer open={!!terminal} onOpenChange={(o) => !o && setSearch({ terminal: "" })}>
+        <DrawerContent className="max-h-[80dvh]">
+          {terminal && <TerminalPanel terminal={terminal} />}
+        </DrawerContent>
+      </Drawer>
 
       <Drawer open={!!focused} onOpenChange={(o) => !o && setSearch({ focus: "" })}>
         <DrawerContent className="max-h-[88dvh]">
           {focused && <FlightDetail flight={focused} />}
         </DrawerContent>
       </Drawer>
+
     </div>
   );
 }
 
-function TerminalPanel({ terminal, onClose }: { terminal: string; onClose: () => void }) {
+function TerminalPanel({ terminal }: { terminal: string }) {
   const t = TERMINAL_HEALTH.find((x) => x.terminal === terminal);
   if (!t) return null;
   return (
-    <section className="surface-card">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-        <h2 className="text-[17px] font-semibold tracking-tight">Terminal {t.terminal}</h2>
-        <button type="button" onClick={onClose} className="press min-h-11 text-xs text-cyan">
-          Close
-        </button>
-      </div>
-      <dl className="mono-data mt-2 grid grid-cols-2 gap-3 text-xs">
+    <>
+      <DrawerHeader className="text-left">
+        <DrawerTitle className="text-base">Terminal {t.terminal}</DrawerTitle>
+        <DrawerDescription>
+          {t.standsAvailable} of {t.standsTotal} stands available · {t.openActions} open actions
+        </DrawerDescription>
+      </DrawerHeader>
+      <dl className="mono-data grid grid-cols-2 gap-3 px-4 pb-8 text-xs">
+
         <div>
           <dt className="text-muted-foreground">Stands available</dt>
           <dd>
@@ -434,9 +198,10 @@ function TerminalPanel({ terminal, onClose }: { terminal: string; onClose: () =>
           <dd>{t.belts}</dd>
         </div>
       </dl>
-    </section>
+    </>
   );
 }
+
 
 function FlightDetail({ flight }: { flight: Flight }) {
   const navigate = useNavigate();

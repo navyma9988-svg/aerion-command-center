@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import { useOps } from "@/lib/ops-store";
 import { CommandSearch } from "@/components/command-search";
 import { NotificationCenter, NotificationToasts } from "@/components/notification-center";
+import { QuickActionsDock } from "@/components/quick-actions-dock";
+import { Toaster } from "@/components/ui/sonner";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -210,6 +212,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         </ul>
       </nav>
 
+      <QuickActionsDock />
+      <Toaster position="bottom-center" />
       <NotificationToasts />
       <CommandSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </div>
