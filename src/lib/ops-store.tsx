@@ -17,14 +17,14 @@ import {
 } from "./airfield-data";
 
 export interface AlertOverlay {
-  state?: AlertState;
-  severity?: Severity;
-  owner?: string;
-  impact?: string;
-  note?: string;
-  ackBy?: string;
-  ackAt?: string;
-  resolvedAt?: string;
+  state?: AlertState | undefined;
+  severity?: Severity | undefined;
+  owner?: string | undefined;
+  impact?: string | undefined;
+  note?: string | undefined;
+  ackBy?: string | undefined;
+  ackAt?: string | undefined;
+  resolvedAt?: string | undefined;
 }
 
 interface OpsContextValue {

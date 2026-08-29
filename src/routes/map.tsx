@@ -146,7 +146,7 @@ function MapPage() {
             {/* Runways */}
             {RUNWAYS.map((r, i) => {
               const status = runwayStatus.get(r.id) ?? "active";
-              const x = RUNWAY_X[i];
+              const x = RUNWAY_X[i] ?? 200;
               const short = r.id.startsWith("13");
               return (
                 <g key={r.id}>

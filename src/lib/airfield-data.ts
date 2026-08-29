@@ -39,14 +39,14 @@ export interface OpsAlert {
   source: AlertSource;
   title: string;
   detail: string;
-  terminal?: Terminal | "Airside";
-  runway?: string;
-  stand?: string;
-  taxiway?: string;
-  linkedAction?: string;
+  terminal?: Terminal | "Airside" | undefined;
+  runway?: string | undefined;
+  stand?: string | undefined;
+  taxiway?: string | undefined;
+  linkedAction?: string | undefined;
   impact: string;
   state: AlertState;
-  escalatesInMin?: number;
+  escalatesInMin?: number | undefined;
   activity: { at: string; who: string; text: string }[];
 }
 
@@ -270,7 +270,7 @@ export interface AirfieldAction {
   title: string;
   owner: string;
   area: string;
-  terminal?: Terminal | "Airside";
+  terminal?: Terminal | "Airside" | undefined;
   status: ActionStatus;
   due: string;
   updatedDaysAgo: number;
