@@ -350,8 +350,8 @@ export function AirfieldRadar({
                     className="stroke-amber"
                     strokeWidth="30"
                     fill="none"
-                    strokeDasharray="26 20"
-                    opacity="0.35"
+                    strokeDasharray="60 46"
+                    opacity="0.22"
                   />
                 )}
                 <line
