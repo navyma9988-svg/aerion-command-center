@@ -133,7 +133,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Sheet>
           </div>
         </div>
-        <div className="runway-strip" data-state={stripState} aria-hidden />
+        <div className="closure-hairline" data-state={stripState} aria-hidden>
+          <span className="closure-hairline__label">
+            {stripState === "alert" ? "P1 · degraded" : stripState === "busy" ? "Elevated ops" : "Airfield nominal"}
+          </span>
+        </div>
         {simulation && (
           <p role="status" className="bg-coral/12 px-4 py-1 text-center text-[12px] font-medium text-coral">
             Simulation active — demo data

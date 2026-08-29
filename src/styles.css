@@ -319,28 +319,73 @@
     linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  animation: hero-sheen 4.5s linear infinite;
+  animation: hero-sheen 10s linear infinite;
   pointer-events: none;
 }
 
-.runway-strip {
+.closure-hairline {
+  position: relative;
   height: 2px;
-  background-image: linear-gradient(90deg, var(--color-amber) 0 16px, transparent 16px 64px);
-  background-size: 64px 100%;
-  animation: runway-chase 2.4s linear infinite;
-  opacity: 0.55;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklab, var(--color-amber) 8%, transparent) 10%,
+    color-mix(in oklab, var(--color-amber) 42%, transparent) 50%,
+    color-mix(in oklab, var(--color-amber) 8%, transparent) 90%,
+    transparent 100%
+  );
+  box-shadow: 0 1px 12px color-mix(in oklab, var(--color-amber) 7%, transparent);
 }
 
-.runway-strip[data-state="alert"] {
-  background-image: linear-gradient(90deg, var(--color-coral) 0 24px, transparent 24px 48px);
-  background-size: 48px 100%;
-  animation-duration: 0.9s;
-  opacity: 0.9;
+.closure-hairline[data-state="alert"] {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklab, var(--color-coral) 10%, transparent) 6%,
+    color-mix(in oklab, var(--color-coral) 68%, transparent) 35%,
+    color-mix(in oklab, var(--color-amber) 50%, transparent) 72%,
+    transparent 100%
+  );
+  box-shadow: 0 1px 14px color-mix(in oklab, var(--color-coral) 12%, transparent);
 }
 
-.runway-strip[data-state="busy"] {
-  background-image: linear-gradient(90deg, var(--color-cyan) 0 16px, transparent 16px 56px);
-  animation-duration: 1.4s;
+.closure-hairline[data-state="busy"] {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklab, var(--color-cyan) 54%, transparent) 50%,
+    transparent 100%
+  );
+}
+
+.closure-hairline__label {
+  position: absolute;
+  right: max(1rem, env(safe-area-inset-right));
+  top: 50%;
+  transform: translateY(-50%);
+  border: 1px solid color-mix(in oklab, var(--color-amber) 18%, var(--color-border));
+  border-radius: 999px;
+  padding: 2px 7px;
+  color: var(--color-amber);
+  background: color-mix(in oklab, var(--color-background) 92%, transparent);
+  box-shadow: 0 2px 8px color-mix(in oklab, black 35%, transparent);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  backdrop-filter: blur(10px);
+}
+
+.closure-hairline[data-state="alert"] .closure-hairline__label {
+  border-color: color-mix(in oklab, var(--color-coral) 30%, var(--color-border));
+  color: var(--color-coral);
+}
+
+.closure-hairline[data-state="busy"] .closure-hairline__label {
+  border-color: color-mix(in oklab, var(--color-cyan) 28%, var(--color-border));
+  color: var(--color-cyan);
 }
 
 .stagger-in > * {

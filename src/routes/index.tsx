@@ -103,11 +103,13 @@ function PulsePage() {
             synced <span className="mono-data">{syncedAt}</span>
           </span>
         </p>
-        <p className="mt-5 flex items-baseline gap-2">
-          <span className="mono-data text-5xl font-bold tracking-tight text-amber">
+        <p className="mt-6 flex items-end gap-2.5">
+          <span className="mono-data text-[56px] font-bold leading-[0.88] tracking-[-0.06em] text-amber">
             <CountUp value={counts.open} />
           </span>
-          <span className="text-[15px] font-medium text-muted-foreground">open actions</span>
+          <span className="pb-0.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            open actions
+          </span>
         </p>
       </section>
 
@@ -326,6 +328,11 @@ function CountUp({ value }: { value: number }) {
   useEffect(() => {
     const start = from.current;
     if (start === value) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      from.current = value;
+      setN(value);
+      return;
+    }
     const t0 = performance.now();
     let raf = 0;
     const tick = (t: number) => {
