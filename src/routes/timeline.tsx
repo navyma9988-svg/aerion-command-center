@@ -226,11 +226,11 @@ function TimelineRow({ eventId, isNew }: { eventId: string; isNew: boolean }) {
                 key={d.field}
                 className={cn(
                   "inline-flex items-center gap-1 rounded-full border px-2 py-0.5",
-                  isNew ? "border-cyan/60 text-cyan" : "border-border text-muted-foreground",
+                  isNew ? "border-cyan/60 text-cyan" : "border-border text-foreground",
                 )}
               >
-                <span className="uppercase tracking-wide opacity-70">{d.field}</span>
-                <span aria-hidden className="line-through opacity-60">{d.from}</span>
+                <span className="uppercase tracking-wide text-muted-foreground">{d.field}</span>
+                <span aria-hidden className="text-muted-foreground line-through">{d.from}</span>
                 <ArrowRight aria-hidden className="size-2.5" />
                 <span className="font-semibold">{d.to}</span>
               </span>
