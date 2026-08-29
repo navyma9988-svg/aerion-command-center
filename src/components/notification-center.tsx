@@ -39,7 +39,7 @@ function severityDot(e: OpsEvent) {
 
 /** Push-style in-app banners for freshly streamed disruptions. */
 export function NotificationToasts() {
-  const { notifications, markNotificationRead, dismissNotification } = useOps();
+  const { notifications, markNotificationRead, dismissNotification, quietActive } = useOps();
   const [shown, setShown] = useState<string[]>([]);
   const [queue, setQueue] = useState<OpsNotification[]>([]);
   const jump = useEventLink();
@@ -48,13 +48,15 @@ export function NotificationToasts() {
     const fresh = notifications.filter((n) => !n.read && !shown.includes(n.id));
     if (!fresh.length) return;
     setShown((p) => [...p, ...fresh.map((f) => f.id)]);
+    if (quietActive) return;
     setQueue((p) => [...fresh, ...p].slice(0, 3));
     const t = window.setTimeout(
       () => setQueue((p) => p.filter((q) => !fresh.some((f) => f.id === q.id))),
       9000,
     );
     return () => window.clearTimeout(t);
-  }, [notifications, shown]);
+  }, [notifications, shown, quietActive]);
+
 
   if (!queue.length) return null;
 
