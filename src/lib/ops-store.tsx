@@ -358,7 +358,13 @@ export function OpsProvider({ children }: { children: ReactNode }) {
         seq: -1000 + i,
         at: a.at,
         who: a.who,
-        kind: "raised" as AuditKind,
+        kind: (/^acknowledg/i.test(a.text)
+          ? "ack"
+          : /^resolv|closed/i.test(a.text)
+            ? "resolve"
+            : i === 0
+              ? "raised"
+              : "note") as AuditKind,
         text: a.text,
       }));
   }, []);

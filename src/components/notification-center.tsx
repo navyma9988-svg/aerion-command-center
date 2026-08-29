@@ -303,7 +303,10 @@ export function NotificationCenter() {
             <li key={n.id} className="flex items-start gap-2 py-3">
               <span
                 aria-hidden
-                className={cn("mt-2 size-2 shrink-0 rounded-full", severityDot(n.event))}
+                className={cn(
+                  "mt-2 size-2 shrink-0 rounded-full",
+                  n.mention ? "bg-amber ring-2 ring-amber/40" : severityDot(n.event),
+                )}
               />
               <button
                 type="button"
@@ -315,7 +318,7 @@ export function NotificationCenter() {
                 className="press min-w-0 flex-1 text-left"
               >
                 <span className="mono-data block text-[10px] uppercase tracking-wide text-muted-foreground">
-                  {n.event.at} CT · {CHANGE_LABEL[n.event.change ?? "new"]}
+                  {n.event.at} CT · {n.mention ? "Mention" : CHANGE_LABEL[n.event.change ?? "new"]}
                   {!n.read && <span className="ml-2 text-coral">Unread</span>}
                 </span>
                 <span
