@@ -1,11 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
-import { useOps } from "@/lib/ops-store";
+import { useOps, type AuditEntry } from "@/lib/ops-store";
 import {
   AIRPORT,
   OWNERS,
   IMPACTS,
   RUNWAYS,
+  AUDIT_KIND_LABEL,
+  ROLES,
   SEVERITY_LABEL,
   STATE_LABEL,
   TERMINALS,
@@ -20,8 +22,22 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Check, ChevronLeft, ChevronRight, FileDown, ShieldAlert, X } from "lucide-react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  FileDown,
+  FileJson,
+  Lock,
+  Send,
+  ShieldAlert,
+  Sliders,
+  Table,
+  TrendingUp,
+  X,
+} from "lucide-react";
 import { printDisruptionSummary } from "@/lib/disruption-pdf";
+import { exportAuditCsv, exportAuditJson } from "@/lib/audit-export";
 
 const STATUS_TABS = [
   { key: "open", label: "Open", states: ["new"] },
@@ -62,7 +78,7 @@ export const Route = createFileRoute("/alerts")({
 });
 
 function AlertsPage() {
-  const { alerts, acknowledge, triage, resolve, currentUser } = useOps();
+  const { alerts, acknowledge, triage, resolve, currentUser, addNote, auditFor } = useOps();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/alerts" });
   const [mineOnly, setMineOnly] = useState(false);
@@ -198,6 +214,8 @@ function AlertsPage() {
         )}
       </fieldset>
 
+      <EscalationRulesPanel />
+
       <ul className="space-y-2">
         {filtered.map((a) => (
           <li key={a.id}>
@@ -223,6 +241,9 @@ function AlertsPage() {
         onAck={acknowledge}
         onTriage={triage}
         onResolve={resolve}
+        onNote={addNote}
+        trail={selected ? auditFor(selected.id) : []}
+        currentUser={currentUser}
       />
     </div>
   );
@@ -295,6 +316,12 @@ function AlertCard({
             .join(" · ") || "Airside"}{" "}
           · {alert.impact}
         </p>
+        {alert.escalationReason && (
+          <p className="mono-data mt-1 flex items-center gap-1 text-[11px] text-amber">
+            <TrendingUp aria-hidden className="size-3" /> Auto-ranked {alert.severity.toUpperCase()} ·{" "}
+            {alert.escalationReason}
+          </p>
+        )}
         {alert.state === "new" && alert.escalatesInMin && (
           <p className="mono-data mt-1 text-[11px] text-coral">
             Escalates to program manager in {alert.escalatesInMin}m
@@ -325,6 +352,9 @@ function TriageSheet({
   onAck,
   onTriage,
   onResolve,
+  onNote,
+  trail,
+  currentUser,
 }: {
   alert: OpsAlert | null;
   position: number;
@@ -334,12 +364,16 @@ function TriageSheet({
   onAck: (id: string) => void;
   onTriage: (id: string, patch: { severity: Severity; owner: string; impact: string; note?: string }) => void;
   onResolve: (id: string, note: string) => void;
+  onNote: (id: string, text: string) => void;
+  trail: AuditEntry[];
+  currentUser: string;
 }) {
   const [mode, setMode] = useState<"detail" | "prioritize" | "resolve">("detail");
   const [severity, setSeverity] = useState<Severity>("p2");
   const [owner, setOwner] = useState(OWNERS[0]!.name);
   const [impact, setImpact] = useState(IMPACTS[0]!);
   const [note, setNote] = useState("");
+  const [operatorNote, setOperatorNote] = useState("");
   const touchX = useRef<number | null>(null);
 
   if (!alert) return null;
@@ -518,28 +552,107 @@ function TriageSheet({
             )}
 
             {alert.state === "resolved" && (
-              <button
-                type="button"
-                onClick={() => printDisruptionSummary(alert, "A. Dadian")}
-                className="press inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-success text-sm font-semibold text-success"
-              >
-                <FileDown aria-hidden className="size-4" />
-                Printable closure summary (PDF)
-              </button>
+              <section className="space-y-2 rounded-lg border border-success/40 p-3">
+                <h3 className="text-sm font-bold text-success">Closure exports</h3>
+                <button
+                  type="button"
+                  onClick={() => printDisruptionSummary(alert, currentUser)}
+                  className="press inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-success text-sm font-semibold text-success"
+                >
+                  <FileDown aria-hidden className="size-4" />
+                  Printable closure summary (PDF)
+                </button>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => exportAuditJson(alert, trail)}
+                    className="press inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border text-sm font-medium"
+                  >
+                    <FileJson aria-hidden className="size-4" /> Audit JSON
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => exportAuditCsv(alert, trail)}
+                    className="press inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border text-sm font-medium"
+                  >
+                    <Table aria-hidden className="size-4" /> Audit CSV
+                  </button>
+                </div>
+              </section>
             )}
 
+            <section className="space-y-2 rounded-lg border border-border p-3">
+              <h3 className="text-sm font-bold">Operator note</h3>
+              <p className="mono-data text-[11px] text-muted-foreground">
+                Mention a role to page them: {ROLES.map((r) => `@${r.handle}`).join(" ")}
+              </p>
+              <label className="sr-only" htmlFor="operator-note">
+                Operator note for {alert.id}
+              </label>
+              <textarea
+                id="operator-note"
+                value={operatorNote}
+                onChange={(e) => setOperatorNote(e.target.value)}
+                rows={2}
+                className="w-full rounded-lg border border-input bg-card p-2 text-sm"
+                placeholder="@ramp please hold the push on C17 until sweep completes"
+              />
+              <div className="flex flex-wrap gap-2">
+                {ROLES.map((r) => (
+                  <button
+                    key={r.handle}
+                    type="button"
+                    onClick={() => setOperatorNote((v) => `${v}${v && !v.endsWith(" ") ? " " : ""}@${r.handle} `)}
+                    className="press mono-data min-h-11 rounded-full border border-border px-3 text-[11px] text-muted-foreground"
+                  >
+                    @{r.handle}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                disabled={!operatorNote.trim()}
+                onClick={() => {
+                  onNote(alert.id, operatorNote);
+                  setOperatorNote("");
+                }}
+                className="press inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-primary-foreground disabled:opacity-50"
+              >
+                <Send aria-hidden className="size-4" /> Post note to audit trail
+              </button>
+            </section>
+
             <section>
-              <h3 className="text-sm font-bold">Activity</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold">Audit trail</h3>
+                <span className="mono-data inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                  <Lock aria-hidden className="size-3" /> Immutable · {trail.length} entries
+                </span>
+              </div>
+              <p className="mono-data mt-1 text-[11px] text-muted-foreground">
+                Append-only. Acknowledgements, status changes and notes are never edited or deleted.
+              </p>
 
               <ol className="mt-2 space-y-2 border-l border-border pl-3">
-                {alert.activity.map((ev, i) => (
-                  <li key={i} className="text-sm">
-                    <p>{ev.text}</p>
-                    <p className="mono-data text-[11px] text-muted-foreground">
-                      {ev.who} · {ev.at} {AIRPORT.timezone}
-                    </p>
-                  </li>
-                ))}
+                {trail
+                  .slice()
+                  .reverse()
+                  .map((ev) => (
+                    <li key={ev.id} className="text-sm">
+                      <p className="mono-data text-[10px] uppercase tracking-wide text-cyan">
+                        {AUDIT_KIND_LABEL[ev.kind]}
+                      </p>
+                      <p>{ev.text}</p>
+                      {ev.mentions?.length ? (
+                        <p className="mono-data text-[11px] text-amber">
+                          Paged {ev.mentions.map((m) => `@${m}`).join(" ")}
+                        </p>
+                      ) : null}
+                      <p className="mono-data text-[11px] text-muted-foreground">
+                        {ev.who} · {ev.at} {AIRPORT.timezone}
+                      </p>
+                    </li>
+                  ))}
               </ol>
             </section>
 
@@ -596,5 +709,67 @@ function TriageSheet({
         </div>
       </DrawerContent>
     </Drawer>
+  );
+}
+
+function EscalationRulesPanel() {
+  const { escalationRules, setRuleEnabled, slaMinutes, setSlaMinutes } = useOps();
+  const [open, setOpen] = useState(false);
+  const active = escalationRules.filter((r) => r.enabled).length;
+
+  return (
+    <section className="rounded-xl border border-border bg-card">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-controls="escalation-rules"
+        className="press flex min-h-11 w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium"
+      >
+        <Sliders aria-hidden className="size-4 text-amber" />
+        Escalation rules
+        <span className="mono-data ml-auto text-[11px] text-muted-foreground">
+          {active} active · SLA {slaMinutes}m
+        </span>
+      </button>
+      {open && (
+        <div id="escalation-rules" className="space-y-3 border-t border-border p-3">
+          {escalationRules.map((r) => (
+            <label key={r.id} className="flex items-start gap-3 text-sm">
+              <input
+                type="checkbox"
+                checked={r.enabled}
+                onChange={(e) => setRuleEnabled(r.id, e.target.checked)}
+                className="mt-1 size-4 accent-[var(--amber)]"
+              />
+              <span>
+                <span className="font-medium">{r.label}</span>
+                <span className="mono-data block text-[11px] text-muted-foreground">
+                  {r.description} Promotes to {r.to.toUpperCase()}.
+                </span>
+              </span>
+            </label>
+          ))}
+          <div>
+            <label htmlFor="sla-window" className="mono-data text-[11px] text-muted-foreground">
+              Acknowledgement SLA window: {slaMinutes} min
+            </label>
+            <input
+              id="sla-window"
+              type="range"
+              min={5}
+              max={45}
+              step={5}
+              value={slaMinutes}
+              onChange={(e) => setSlaMinutes(Number(e.target.value))}
+              className="mt-2 w-full accent-[var(--amber)]"
+            />
+          </div>
+          <p className="mono-data text-[11px] text-muted-foreground">
+            Matching items are re-ranked automatically — worst first, without touching the audit trail.
+          </p>
+        </div>
+      )}
+    </section>
   );
 }
