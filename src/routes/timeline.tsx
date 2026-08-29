@@ -229,8 +229,8 @@ function TimelineRow({ eventId, isNew }: { eventId: string; isNew: boolean }) {
                   isNew ? "border-cyan/60 text-cyan" : "border-border text-foreground",
                 )}
               >
-                <span className="uppercase tracking-wide text-muted-foreground">{d.field}</span>
-                <span aria-hidden className="text-muted-foreground line-through">{d.from}</span>
+                <span className="uppercase tracking-wide text-foreground">{d.field}</span>
+                <span aria-hidden className="text-foreground line-through">{d.from}</span>
                 <ArrowRight aria-hidden className="size-2.5" />
                 <span className="font-semibold">{d.to}</span>
               </span>
