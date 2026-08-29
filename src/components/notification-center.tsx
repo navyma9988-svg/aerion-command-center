@@ -117,9 +117,21 @@ export function NotificationCenter() {
     dismissNotification,
     streaming,
     setStreaming,
+    notifPrefs,
+    setNotifPrefs,
+    quietActive,
+    mutedCount,
   } = useOps();
   const [open, setOpen] = useState(false);
+  const [settings, setSettings] = useState(false);
   const jump = useEventLink();
+
+  const toggle = (key: "severities" | "terminals", value: string) => {
+    const cur = notifPrefs[key] as string[];
+    const next = cur.includes(value) ? cur.filter((v) => v !== value) : [...cur, value];
+    setNotifPrefs({ [key]: next } as never);
+  };
+
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
