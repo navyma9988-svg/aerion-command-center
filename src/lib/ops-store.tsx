@@ -53,12 +53,46 @@ interface OpsContextValue {
   markEventsSeen: () => void;
   streaming: boolean;
   setStreaming: (v: boolean) => void;
+  speed: number;
+  setSpeed: (v: number) => void;
   /* notification center */
   notifications: OpsNotification[];
   unreadCount: number;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
   dismissNotification: (id: string) => void;
+  notifPrefs: NotifPrefs;
+  setNotifPrefs: (p: Partial<NotifPrefs>) => void;
+  quietActive: boolean;
+  mutedCount: number;
+}
+
+export interface NotifPrefs {
+  severities: Severity[];
+  terminals: string[];
+  quietEnabled: boolean;
+  quietStart: string;
+  quietEnd: string;
+}
+
+export const NOTIF_TERMINALS = ["A", "B", "C", "D", "E", "Airside"];
+
+function eventTerminal(e: OpsEvent): string {
+  if (e.terminal) return e.terminal;
+  const tag = e.tags.find((t) => t.startsWith("Terminal "));
+  if (tag) return tag.replace("Terminal ", "");
+  return "Airside";
+}
+
+function inQuietWindow(now: string, start: string, end: string) {
+  const m = (s: string) => {
+    const [h, mm] = s.split(":");
+    return Number(h) * 60 + Number(mm ?? 0);
+  };
+  const n = m(now.slice(0, 5));
+  const s = m(start);
+  const e = m(end);
+  return s <= e ? n >= s && n < e : n >= s || n < e;
 }
 
 export interface OpsNotification {
@@ -99,9 +133,17 @@ export function OpsProvider({ children }: { children: ReactNode }) {
   const [lastSync, setLastSync] = useState("14:32:07");
   const [streamIndex, setStreamIndex] = useState(0);
   const [streaming, setStreaming] = useState(true);
+  const [speed, setSpeed] = useState(1);
   const [seenIds, setSeenIds] = useState<string[]>(() => SEED_EVENTS.map((e) => e.id));
   const [readIds, setReadIds] = useState<string[]>([]);
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
+  const [notifPrefs, setNotifPrefsState] = useState<NotifPrefs>({
+    severities: ["p1", "p2", "p3"],
+    terminals: NOTIF_TERMINALS,
+    quietEnabled: false,
+    quietStart: "22:00",
+    quietEnd: "06:00",
+  });
   const currentUser = "A. Dadian";
 
   // Stream one deterministic event at a time while the board is open.
@@ -109,10 +151,11 @@ export function OpsProvider({ children }: { children: ReactNode }) {
     if (!streaming) return;
     const t = window.setInterval(
       () => setStreamIndex((i) => (i >= INCOMING_EVENTS.length ? i : i + 1)),
-      9000,
+      Math.max(600, Math.round(9000 / speed)),
     );
     return () => window.clearInterval(t);
-  }, [streaming]);
+  }, [streaming, speed]);
+
 
   const events = useMemo<OpsEvent[]>(() => {
     const live = INCOMING_EVENTS.slice(0, streamIndex).slice().reverse();
@@ -140,17 +183,32 @@ export function OpsProvider({ children }: { children: ReactNode }) {
     [events, seenIds],
   );
 
-  const notifications = useMemo<OpsNotification[]>(
+  const candidates = useMemo<OpsEvent[]>(
     () =>
       events
         .filter((e) => e.change === "new" || e.change === "escalated")
         .filter((e) => !dismissedIds.includes(e.id))
-        .filter((e) => !SEED_EVENTS.some((s) => s.id === e.id))
-        .map((e) => ({ id: e.id, event: e, read: readIds.includes(e.id) })),
-    [events, readIds, dismissedIds],
+        .filter((e) => !SEED_EVENTS.some((s) => s.id === e.id)),
+    [events, dismissedIds],
   );
 
+  const notifications = useMemo<OpsNotification[]>(
+    () =>
+      candidates
+        .filter((e) => notifPrefs.severities.includes(e.severity ?? "p3"))
+        .filter((e) => notifPrefs.terminals.includes(eventTerminal(e)))
+        .map((e) => ({ id: e.id, event: e, read: readIds.includes(e.id) })),
+    [candidates, readIds, notifPrefs],
+  );
+
+  const mutedCount = candidates.length - notifications.length;
+
+  const quietActive =
+    notifPrefs.quietEnabled &&
+    inQuietWindow(clock, notifPrefs.quietStart, notifPrefs.quietEnd);
+
   const unreadCount = notifications.filter((n) => !n.read).length;
+
 
   const markEventsSeen = useCallback(() => setSeenIds(events.map((e) => e.id)), [events]);
   const markNotificationRead = useCallback(
@@ -293,12 +351,19 @@ export function OpsProvider({ children }: { children: ReactNode }) {
     markEventsSeen,
     streaming,
     setStreaming,
+    speed,
+    setSpeed,
     notifications,
     unreadCount,
     markNotificationRead,
     markAllNotificationsRead,
     dismissNotification,
+    notifPrefs,
+    setNotifPrefs: (p) => setNotifPrefsState((prev) => ({ ...prev, ...p })),
+    quietActive,
+    mutedCount,
   };
+
 
   return <OpsContext.Provider value={value}>{children}</OpsContext.Provider>;
 }

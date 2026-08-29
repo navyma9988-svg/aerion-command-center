@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Activity, ArrowRight, Pause, Play, Check } from "lucide-react";
+import { Activity, ArrowRight, Gauge, Pause, Play, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOps } from "@/lib/ops-store";
 import { useEventLink } from "@/components/notification-center";
 import { CHANGE_LABEL, EVENT_KIND_LABEL, type EventKind } from "@/lib/airfield-data";
 
 const KINDS: (EventKind | "all")[] = ["all", "weather", "runway", "ramp", "flight", "action"];
+const SPEEDS = [0.5, 1, 2, 4];
 
 export const Route = createFileRoute("/timeline")({
   head: () => ({
@@ -28,7 +29,8 @@ export const Route = createFileRoute("/timeline")({
 });
 
 function TimelinePage() {
-  const { events, unseenEventIds, markEventsSeen, streaming, setStreaming, clock } = useOps();
+  const { events, unseenEventIds, markEventsSeen, streaming, setStreaming, speed, setSpeed, clock } =
+    useOps();
   const [kind, setKind] = useState<EventKind | "all">("all");
   // Freeze the "since last view" set on entry so the ribbon stays stable while reading.
   const [sinceIds, setSinceIds] = useState<string[]>([]);
@@ -57,7 +59,7 @@ function TimelinePage() {
         <div className="min-w-0">
           <h1 className="text-xl font-bold">Live timeline</h1>
           <p className="mono-data text-xs text-muted-foreground">
-            {streaming ? "Streaming" : "Paused"} · {events.length} events · {clock} CT
+            {streaming ? `Streaming ${speed}×` : "Paused"} · {events.length} events · {clock} CT
           </p>
         </div>
         <button
@@ -70,6 +72,32 @@ function TimelinePage() {
           {streaming ? "Pause feed" : "Resume feed"}
         </button>
       </header>
+
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3">
+        <Gauge aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+        <span id="sim-speed-label" className="mono-data text-[11px] uppercase tracking-wide text-muted-foreground">
+          Simulation speed
+        </span>
+        <div role="group" aria-labelledby="sim-speed-label" className="ml-auto flex gap-1.5">
+          {SPEEDS.map((s) => (
+            <button
+              key={s}
+              type="button"
+              aria-pressed={speed === s}
+              onClick={() => setSpeed(s)}
+              className={cn(
+                "press mono-data min-h-11 rounded-full border px-3 text-xs font-semibold",
+                speed === s
+                  ? "border-cyan bg-cyan/15 text-cyan"
+                  : "border-border text-muted-foreground",
+              )}
+            >
+              {s}×
+            </button>
+          ))}
+        </div>
+      </div>
+
 
       <div
         role="status"
