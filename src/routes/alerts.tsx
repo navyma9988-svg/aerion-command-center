@@ -516,8 +516,20 @@ function TriageSheet({
               </section>
             )}
 
+            {alert.state === "resolved" && (
+              <button
+                type="button"
+                onClick={() => printDisruptionSummary(alert, "A. Dadian")}
+                className="press inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-success text-sm font-semibold text-success"
+              >
+                <FileDown aria-hidden className="size-4" />
+                Printable closure summary (PDF)
+              </button>
+            )}
+
             <section>
               <h3 className="text-sm font-bold">Activity</h3>
+
               <ol className="mt-2 space-y-2 border-l border-border pl-3">
                 {alert.activity.map((ev, i) => (
                   <li key={i} className="text-sm">
