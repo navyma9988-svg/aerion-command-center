@@ -6,17 +6,18 @@
 
 /*
  * DFW Airfield Command — design system.
- * Dark operational canvas is the default; `.light` on <html> flips to the
- * ivory daylight surface. All colors are oklch semantic tokens.
+ * Night-ops dark canvas is the default; `.light` on <html> flips to the
+ * daylight surface. Inter for all UI text, JetBrains Mono for operational
+ * data values only. One brand accent (amber) + semantic status colors.
  */
 
 @theme inline {
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -53,76 +54,85 @@
 }
 
 :root {
-  --radius: 12px;
-  --background: oklch(0.17 0.014 258);
-  --foreground: oklch(0.97 0.004 250);
-  --card: oklch(0.215 0.016 258);
-  --card-foreground: oklch(0.97 0.004 250);
-  --elevated: oklch(0.255 0.017 258);
-  --popover: oklch(0.215 0.016 258);
-  --popover-foreground: oklch(0.97 0.004 250);
-  --primary: oklch(0.83 0.16 84);
-  --primary-foreground: oklch(0.2 0.03 70);
-  --secondary: oklch(0.28 0.018 258);
-  --secondary-foreground: oklch(0.97 0.004 250);
-  --muted: oklch(0.28 0.018 258);
-  --muted-foreground: oklch(0.75 0.014 254);
-  --accent: oklch(0.72 0.14 230);
-  --accent-foreground: oklch(0.18 0.03 250);
-  --destructive: oklch(0.72 0.16 25);
-  --destructive-foreground: oklch(0.18 0.02 25);
-  --amber: oklch(0.83 0.16 84);
-  --amber-foreground: oklch(0.2 0.03 70);
-  --cyan: oklch(0.76 0.13 227);
-  --coral: oklch(0.73 0.16 25);
-  --success: oklch(0.79 0.15 158);
-  --border: oklch(0.34 0.018 258);
-  --input: oklch(0.34 0.018 258);
-  --ring: oklch(0.76 0.13 227);
-  --sidebar: oklch(0.195 0.015 258);
-  --sidebar-foreground: oklch(0.97 0.004 250);
-  --sidebar-primary: oklch(0.83 0.16 84);
-  --sidebar-primary-foreground: oklch(0.2 0.03 70);
-  --sidebar-accent: oklch(0.28 0.018 258);
-  --sidebar-accent-foreground: oklch(0.97 0.004 250);
-  --sidebar-border: oklch(0.34 0.018 258);
-  --sidebar-ring: oklch(0.76 0.13 227);
+  --radius: 16px;
+  /* One background family: base / surface / raised */
+  --background: oklch(0.157 0.014 265); /* #0A0D14 */
+  --foreground: oklch(0.975 0.003 250);
+  --card: oklch(0.203 0.014 265); /* #11151F */
+  --card-foreground: oklch(0.975 0.003 250);
+  --elevated: oklch(0.253 0.014 265); /* #1A1F2B */
+  --popover: oklch(0.203 0.014 265);
+  --popover-foreground: oklch(0.975 0.003 250);
+  /* Brand accent — AERION gold */
+  --primary: oklch(0.83 0.155 84);
+  --primary-foreground: oklch(0.19 0.03 70);
+  --secondary: oklch(0.253 0.014 265);
+  --secondary-foreground: oklch(0.975 0.003 250);
+  --muted: oklch(0.253 0.014 265);
+  --muted-foreground: oklch(0.795 0.011 258); /* AA on base + surface */
+  --accent: oklch(0.83 0.155 84);
+  --accent-foreground: oklch(0.19 0.03 70);
+  --destructive: oklch(0.68 0.185 22);
+  --destructive-foreground: oklch(0.99 0.005 25);
+  --amber: oklch(0.83 0.155 84);
+  --amber-foreground: oklch(0.19 0.03 70);
+  /* Semantic status only */
+  --cyan: oklch(0.75 0.115 240); /* info blue */
+  --coral: oklch(0.7 0.175 22); /* critical red */
+  --success: oklch(0.78 0.14 158); /* normal green */
+  --border: oklch(1 0 0 / 7%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.83 0.155 84);
+  --sidebar: oklch(0.178 0.014 265);
+  --sidebar-foreground: oklch(0.975 0.003 250);
+  --sidebar-primary: oklch(0.83 0.155 84);
+  --sidebar-primary-foreground: oklch(0.19 0.03 70);
+  --sidebar-accent: oklch(0.253 0.014 265);
+  --sidebar-accent-foreground: oklch(0.975 0.003 250);
+  --sidebar-border: oklch(1 0 0 / 7%);
+  --sidebar-ring: oklch(0.83 0.155 84);
+
+  --shadow-card: 0 1px 2px oklch(0 0 0 / 0.4), 0 8px 24px -12px oklch(0 0 0 / 0.7);
+  --hairline: inset 0 1px 0 oklch(1 0 0 / 0.05);
 }
 
 .light {
-  --background: oklch(0.98 0.002 250);
-  --foreground: oklch(0.22 0.02 258);
+  --background: oklch(0.985 0.002 250);
+  --foreground: oklch(0.2 0.02 262);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.02 258);
+  --card-foreground: oklch(0.2 0.02 262);
   --elevated: oklch(0.965 0.003 250);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.02 258);
-  --primary: oklch(0.62 0.14 72);
+  --popover-foreground: oklch(0.2 0.02 262);
+  --primary: oklch(0.6 0.135 72);
   --primary-foreground: oklch(0.99 0.003 90);
-  --secondary: oklch(0.94 0.005 250);
-  --secondary-foreground: oklch(0.22 0.02 258);
-  --muted: oklch(0.94 0.005 250);
-  --muted-foreground: oklch(0.44 0.017 256);
-  --accent: oklch(0.52 0.14 230);
-  --accent-foreground: oklch(0.99 0.003 250);
-  --destructive: oklch(0.52 0.19 25);
+  --secondary: oklch(0.945 0.004 250);
+  --secondary-foreground: oklch(0.2 0.02 262);
+  --muted: oklch(0.945 0.004 250);
+  --muted-foreground: oklch(0.42 0.016 258);
+  --accent: oklch(0.6 0.135 72);
+  --accent-foreground: oklch(0.99 0.003 90);
+  --destructive: oklch(0.51 0.19 25);
   --destructive-foreground: oklch(0.99 0.003 25);
-  --amber: oklch(0.6 0.14 72);
+  --amber: oklch(0.58 0.135 72);
   --amber-foreground: oklch(0.99 0.003 90);
-  --cyan: oklch(0.5 0.14 229);
-  --coral: oklch(0.52 0.19 25);
-  --success: oklch(0.5 0.13 158);
-  --border: oklch(0.89 0.006 252);
-  --input: oklch(0.89 0.006 252);
-  --ring: oklch(0.5 0.14 229);
+  --cyan: oklch(0.5 0.13 250);
+  --coral: oklch(0.51 0.19 25);
+  --success: oklch(0.48 0.12 158);
+  --border: oklch(0.2 0.02 262 / 10%);
+  --input: oklch(0.2 0.02 262 / 16%);
+  --ring: oklch(0.6 0.135 72);
   --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.22 0.02 258);
-  --sidebar-primary: oklch(0.6 0.14 72);
+  --sidebar-foreground: oklch(0.2 0.02 262);
+  --sidebar-primary: oklch(0.6 0.135 72);
   --sidebar-primary-foreground: oklch(0.99 0.003 90);
-  --sidebar-accent: oklch(0.94 0.005 250);
-  --sidebar-accent-foreground: oklch(0.22 0.02 258);
-  --sidebar-border: oklch(0.89 0.006 252);
-  --sidebar-ring: oklch(0.5 0.14 229);
+  --sidebar-accent: oklch(0.945 0.004 250);
+  --sidebar-accent-foreground: oklch(0.2 0.02 262);
+  --sidebar-border: oklch(0.2 0.02 262 / 10%);
+  --sidebar-ring: oklch(0.6 0.135 72);
+
+  --shadow-card: 0 1px 2px oklch(0.2 0.02 262 / 0.06), 0 10px 24px -16px oklch(0.2 0.02 262 / 0.25);
+  --hairline: inset 0 1px 0 oklch(1 0 0 / 0.6);
 }
 
 @layer base {
@@ -138,29 +148,90 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "ss01";
     overscroll-behavior-y: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+    line-height: 1.15;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+  h2 {
+    font-size: 1.0625rem;
+    line-height: 1.3;
+    font-weight: 650;
+    letter-spacing: -0.015em;
+  }
+  h3 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
   }
 
   :focus-visible {
     outline: 2px solid var(--color-ring);
     outline-offset: 2px;
   }
+
+  /* Depth instead of hard outlines on every card surface. */
+  .bg-card:not(button):not(a) {
+    box-shadow: var(--shadow-card), var(--hairline);
+  }
 }
 
 @utility mono-data {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 @utility press {
   transition:
-    transform 120ms ease,
-    box-shadow 120ms ease,
-    background-color 120ms ease;
+    transform 170ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 170ms ease-out,
+    background-color 170ms ease-out,
+    color 170ms ease-out,
+    border-color 170ms ease-out;
 
   &:active {
     transform: scale(0.98);
+  }
+}
+
+/* Clean list row: leading tinted icon, title, quiet meta, chevron. */
+@utility row-tap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 44px;
+  width: 100%;
+  padding: 0.875rem 0.25rem;
+  text-align: left;
+  transition:
+    transform 170ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 170ms ease-out;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+@utility surface-card {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 1.25rem;
+  box-shadow: var(--shadow-card), var(--hairline);
+}
+
+@utility dot-sep {
+  &::before {
+    content: "·";
+    margin: 0 0.4rem;
+    opacity: 0.6;
   }
 }
 
@@ -194,7 +265,7 @@
 @keyframes strike-on {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -202,57 +273,81 @@
   }
 }
 
+@keyframes hero-sheen {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 200% 50%;
+  }
+}
+
+.hero-degraded {
+  position: relative;
+}
+.hero-degraded::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+      100deg,
+      transparent 20%,
+      color-mix(in oklab, var(--color-amber) 70%, transparent) 45%,
+      color-mix(in oklab, var(--color-coral) 60%, transparent) 55%,
+      transparent 80%
+    )
+    0 0 / 200% 100%;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: hero-sheen 4.5s linear infinite;
+  pointer-events: none;
+}
+
 .runway-strip {
-  height: 3px;
-  background-image: linear-gradient(
-    90deg,
-    var(--color-amber) 0 16px,
-    transparent 16px 64px
-  );
+  height: 2px;
+  background-image: linear-gradient(90deg, var(--color-amber) 0 16px, transparent 16px 64px);
   background-size: 64px 100%;
   animation: runway-chase 2.4s linear infinite;
-  opacity: 0.85;
+  opacity: 0.55;
 }
 
 .runway-strip[data-state="alert"] {
-  background-image: linear-gradient(
-    90deg,
-    var(--color-coral) 0 24px,
-    transparent 24px 48px
-  );
+  background-image: linear-gradient(90deg, var(--color-coral) 0 24px, transparent 24px 48px);
   background-size: 48px 100%;
   animation-duration: 0.9s;
+  opacity: 0.9;
 }
 
 .runway-strip[data-state="busy"] {
-  background-image: linear-gradient(
-    90deg,
-    var(--color-cyan) 0 16px,
-    transparent 16px 56px
-  );
+  background-image: linear-gradient(90deg, var(--color-cyan) 0 16px, transparent 16px 56px);
   animation-duration: 1.4s;
 }
 
 .stagger-in > * {
-  animation: strike-on 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: strike-on 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .stagger-in > *:nth-child(1) {
-  animation-delay: 40ms;
+  animation-delay: 20ms;
 }
 .stagger-in > *:nth-child(2) {
-  animation-delay: 90ms;
+  animation-delay: 50ms;
 }
 .stagger-in > *:nth-child(3) {
-  animation-delay: 140ms;
+  animation-delay: 80ms;
 }
 .stagger-in > *:nth-child(4) {
-  animation-delay: 190ms;
+  animation-delay: 110ms;
 }
 .stagger-in > *:nth-child(5) {
-  animation-delay: 240ms;
+  animation-delay: 140ms;
 }
 .stagger-in > *:nth-child(6) {
-  animation-delay: 290ms;
+  animation-delay: 170ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
