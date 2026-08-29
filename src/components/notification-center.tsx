@@ -104,7 +104,7 @@ export function NotificationToasts() {
               dismissNotification(n.id);
               setQueue((p) => p.filter((q) => q.id !== n.id));
             }}
-            className="press grid size-11 shrink-0 place-items-center rounded-lg hover:bg-secondary"
+            className="press grid size-11 shrink-0 place-items-center rounded-xl hover:bg-secondary"
           >
             <X aria-hidden className="size-4" />
           </button>
@@ -149,7 +149,7 @@ export function NotificationCenter() {
             ? `Notification center, ${unreadCount} unread disruption ${unreadCount === 1 ? "alert" : "alerts"}`
             : "Notification center, no unread alerts"
         }
-        className="press relative grid size-11 place-items-center rounded-lg hover:bg-secondary"
+        className="press relative grid size-11 place-items-center rounded-xl hover:bg-secondary"
       >
         <Bell aria-hidden className="size-5" />
         {unreadCount > 0 && (
@@ -196,7 +196,7 @@ export function NotificationCenter() {
         </div>
 
         {(quietActive || mutedCount > 0) && (
-          <p className="mono-data mx-4 mb-3 rounded-lg border border-border bg-secondary/40 px-3 py-2 text-[11px] text-muted-foreground">
+          <p className="mono-data mx-4 mb-3 rounded-xl border border-border bg-secondary/40 px-3 py-2 text-[11px] text-muted-foreground">
             {quietActive
               ? `Quiet hours ${notifPrefs.quietStart}–${notifPrefs.quietEnd} CT — banners suppressed, items still land here.`
               : `${mutedCount} notification${mutedCount === 1 ? "" : "s"} filtered out by your severity and terminal settings.`}
@@ -273,7 +273,7 @@ export function NotificationCenter() {
                     type="time"
                     value={notifPrefs.quietStart}
                     onChange={(e) => setNotifPrefs({ quietStart: e.target.value })}
-                    className="mono-data min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm"
+                    className="mono-data min-h-11 w-full rounded-xl border border-input bg-card px-3 text-sm"
                   />
                 </div>
                 <div>
@@ -285,7 +285,7 @@ export function NotificationCenter() {
                     type="time"
                     value={notifPrefs.quietEnd}
                     onChange={(e) => setNotifPrefs({ quietEnd: e.target.value })}
-                    className="mono-data min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm"
+                    className="mono-data min-h-11 w-full rounded-xl border border-input bg-card px-3 text-sm"
                   />
                 </div>
               </div>
@@ -335,7 +335,7 @@ export function NotificationCenter() {
                 type="button"
                 aria-label={`Dismiss notification: ${n.event.title}`}
                 onClick={() => dismissNotification(n.id)}
-                className="press grid size-11 shrink-0 place-items-center rounded-lg hover:bg-secondary"
+                className="press grid size-11 shrink-0 place-items-center rounded-xl hover:bg-secondary"
               >
                 <X aria-hidden className="size-4" />
               </button>

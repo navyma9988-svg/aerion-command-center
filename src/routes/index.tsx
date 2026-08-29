@@ -321,8 +321,8 @@ function StatTile({
 }
 
 function CountUp({ value }: { value: number }) {
-  const [n, setN] = useState(value);
-  const from = useRef(value);
+  const [n, setN] = useState(0);
+  const from = useRef(0);
   useEffect(() => {
     const start = from.current;
     if (start === value) return;

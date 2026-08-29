@@ -46,7 +46,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className={cn("min-h-dvh bg-background", density === "compact" && "text-[0.94rem]")}>
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
       >
         Skip to content
       </a>
@@ -82,14 +82,14 @@ export function AppShell({ children }: { children: ReactNode }) {
               onClick={() => setSearchOpen(true)}
               aria-label="Open command search"
               aria-keyshortcuts="Meta+K"
-              className="press grid size-11 place-items-center rounded-lg hover:bg-secondary"
+              className="press grid size-11 place-items-center rounded-xl hover:bg-secondary"
             >
               <Search aria-hidden className="size-5" />
             </button>
             <Sheet>
               <SheetTrigger
                 aria-label="Open tweaks panel"
-                className="press grid size-11 place-items-center rounded-lg hover:bg-secondary"
+                className="press grid size-11 place-items-center rounded-xl hover:bg-secondary"
               >
                 <Settings2 aria-hidden className="size-5" />
               </SheetTrigger>
@@ -156,7 +156,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             activeProps={{ className: "bg-amber/12 text-amber" }}
           >
             <Icon aria-hidden className="size-5" />
-            <span className="pointer-events-none absolute left-[3.5rem] z-50 hidden whitespace-nowrap rounded-md bg-elevated px-2 py-1 text-xs font-medium text-foreground shadow-md group-hover:block">
+            <span className="pointer-events-none absolute left-[3.5rem] z-50 hidden whitespace-nowrap rounded-lg bg-elevated px-2 py-1 text-xs font-medium text-foreground shadow-md group-hover:block">
               {label}
             </span>
             {to === "/alerts" && openCount > 0 && (

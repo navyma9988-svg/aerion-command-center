@@ -66,7 +66,7 @@ function TimelinePage() {
     <div className="space-y-4">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <div className="min-w-0">
-          <h1 className="text-xl font-bold">Live timeline</h1>
+          <h1 className="text-[26px] font-bold tracking-tight">Live timeline</h1>
           <p className="mono-data text-xs text-muted-foreground">
             {streaming ? `Streaming ${speed}×` : "Paused"} · {events.length} events · {clock} CT
           </p>
@@ -82,7 +82,7 @@ function TimelinePage() {
         </button>
       </header>
 
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3">
+      <div className="flex flex-wrap items-center gap-2 surface-card p-4">
         <Gauge aria-hidden className="size-4 shrink-0 text-muted-foreground" />
         <span id="sim-speed-label" className="mono-data text-[11px] uppercase tracking-wide text-muted-foreground">
           Simulation speed
@@ -160,7 +160,7 @@ function TimelinePage() {
           <TimelineRow key={e.id} eventId={e.id} isNew={newIds.includes(e.id)} />
         ))}
         {!list.length && (
-          <li className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+          <li className="surface-card p-0 p-6 text-center text-sm text-muted-foreground">
             No {kind === "all" ? "" : EVENT_KIND_LABEL[kind].toLowerCase()} events on this shift yet.
           </li>
         )}

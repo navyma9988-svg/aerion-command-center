@@ -82,7 +82,7 @@ function MapPage() {
     <div className="space-y-4">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <div className="min-w-0">
-          <h1 className="text-xl font-bold">Airfield map</h1>
+          <h1 className="text-[26px] font-bold tracking-tight">Airfield map</h1>
           <p className="mono-data text-xs text-muted-foreground">
             {WIND.flow} · {WIND.dir}° / {WIND.kt}kt · {WIND.approach}
           </p>
@@ -134,7 +134,7 @@ function MapPage() {
       {listView ? (
         <AirfieldList onFocus={(f) => setSearch({ focus: f.callsign })} />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="overflow-hidden surface-card p-0">
           <svg
             viewBox="0 0 400 560"
             className="h-[62dvh] w-full touch-pan-y"
@@ -407,9 +407,9 @@ function TerminalPanel({ terminal, onClose }: { terminal: string; onClose: () =>
   const t = TERMINAL_HEALTH.find((x) => x.terminal === terminal);
   if (!t) return null;
   return (
-    <section className="rounded-xl border border-border bg-card p-4">
+    <section className="surface-card">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-        <h2 className="text-sm font-bold">Terminal {t.terminal}</h2>
+        <h2 className="text-[17px] font-semibold tracking-tight">Terminal {t.terminal}</h2>
         <button type="button" onClick={onClose} className="press min-h-11 text-xs text-cyan">
           Close
         </button>
@@ -488,7 +488,7 @@ function FlightDetail({ flight }: { flight: Flight }) {
           </div>
         </dl>
         {flight.stand === "C17" || flight.stand === "C21" ? (
-          <p className="rounded-lg bg-coral/10 p-3 text-sm text-coral">
+          <p className="rounded-xl bg-coral/10 p-3 text-sm text-coral">
             Reprotected from Stand C14 — jet bridge hydraulic fault (AF-127).
           </p>
         ) : null}
@@ -500,7 +500,7 @@ function FlightDetail({ flight }: { flight: Flight }) {
               search: { item: "", status: "open", severity: "", terminal: flight.terminal, runway: "" },
             })
           }
-          className="press min-h-11 w-full rounded-lg border border-border text-sm font-medium"
+          className="press min-h-11 w-full rounded-xl border border-border text-sm font-medium"
         >
           View Terminal {flight.terminal} disruptions
         </button>
@@ -511,8 +511,8 @@ function FlightDetail({ flight }: { flight: Flight }) {
 
 function AirfieldList({ onFocus }: { onFocus: (f: Flight) => void }) {
   return (
-    <section className="rounded-xl border border-border bg-card p-3">
-      <h2 className="text-sm font-bold">Active movements</h2>
+    <section className="surface-card p-4">
+      <h2 className="text-[17px] font-semibold tracking-tight">Active movements</h2>
       <ul className="mt-2 divide-y divide-border">
         {FLIGHTS.map((f) => (
           <li key={f.id}>

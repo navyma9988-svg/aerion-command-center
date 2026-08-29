@@ -78,13 +78,13 @@ function BriefPage() {
   return (
     <div className="space-y-4">
       <header>
-        <h1 className="text-xl font-bold">DFW Airfield Brief</h1>
+        <h1 className="text-[26px] font-bold tracking-tight">DFW Airfield Brief</h1>
         <p className="mono-data text-xs text-muted-foreground">
           Shift start 0600 {AIRPORT.timezone} · reads today's register
         </p>
       </header>
 
-      <section className="rounded-xl border border-border bg-card p-4">
+      <section className="surface-card">
         <p className="text-sm text-muted-foreground">
           Each morning the app reads the whole action register and writes the superintendent a
           two-minute brief: what's burning, what's due before end of shift, and who's carrying the
@@ -99,7 +99,7 @@ function BriefPage() {
 
       <section
         aria-live="polite"
-        className="min-h-40 rounded-xl border border-border bg-card p-4 text-sm leading-relaxed"
+        className="min-h-40 surface-card text-sm leading-relaxed"
       >
         {phase === "idle" && (
           <p className="text-muted-foreground">Tap generate to write the morning briefing.</p>
@@ -120,7 +120,7 @@ function BriefPage() {
         type="button"
         onClick={generate}
         className={cn(
-          "press inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-primary-foreground",
+          "press inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-semibold text-primary-foreground",
         )}
       >
         <Sparkles aria-hidden className="size-4" />

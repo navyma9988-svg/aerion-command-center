@@ -126,7 +126,7 @@ function AlertsPage() {
     <div className="space-y-4">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <div className="min-w-0">
-          <h1 className="text-xl font-bold">Disruption triage</h1>
+          <h1 className="text-[26px] font-bold tracking-tight">Disruption triage</h1>
           <p className="mono-data text-xs text-muted-foreground">
             {filtered.length} of {alerts.length} items · {AIRPORT.asOf} {AIRPORT.timezone}
           </p>
@@ -288,7 +288,7 @@ function AlertCard({
   onAck: () => void;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card">
+    <div className="surface-card p-0">
       <button type="button" onClick={onOpen} className="press w-full p-3 text-left hover:bg-elevated">
         <div className="flex flex-wrap items-center gap-2">
           <span
@@ -462,8 +462,8 @@ function TriageSheet({
             </dl>
 
             {mode === "prioritize" && (
-              <section className="space-y-3 rounded-lg border border-border p-3">
-                <h3 className="text-sm font-bold">Prioritize</h3>
+              <section className="space-y-3 rounded-xl border border-border p-3">
+                <h3 className="text-[17px] font-semibold tracking-tight">Prioritize</h3>
                 <div className="flex flex-wrap gap-2">
                   {(["p1", "p2", "p3"] as Severity[]).map((s) => (
                     <FilterChip key={s} active={severity === s} onClick={() => setSeverity(s)}>
@@ -478,7 +478,7 @@ function TriageSheet({
                   id="triage-owner"
                   value={owner}
                   onChange={(e) => setOwner(e.target.value)}
-                  className="min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm"
+                  className="min-h-11 w-full rounded-xl border border-input bg-card px-3 text-sm"
                 >
                   {OWNERS.map((o) => (
                     <option key={o.initials}>{o.name}</option>
@@ -491,7 +491,7 @@ function TriageSheet({
                   id="triage-impact"
                   value={impact}
                   onChange={(e) => setImpact(e.target.value)}
-                  className="min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm"
+                  className="min-h-11 w-full rounded-xl border border-input bg-card px-3 text-sm"
                 >
                   {IMPACTS.map((i) => (
                     <option key={i}>{i}</option>
@@ -505,7 +505,7 @@ function TriageSheet({
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   rows={2}
-                  className="w-full rounded-lg border border-input bg-card p-2 text-sm"
+                  className="w-full rounded-xl border border-input bg-card p-2 text-sm"
                   placeholder="Crew mobilized, target restore 1800 CT"
                 />
                 <button
@@ -515,7 +515,7 @@ function TriageSheet({
                     setNote("");
                     setMode("detail");
                   }}
-                  className="press min-h-11 w-full rounded-lg bg-primary text-sm font-semibold text-primary-foreground"
+                  className="press min-h-11 w-full rounded-xl bg-primary text-sm font-semibold text-primary-foreground"
                 >
                   Set priority and assign
                 </button>
@@ -523,8 +523,8 @@ function TriageSheet({
             )}
 
             {mode === "resolve" && (
-              <section className="space-y-3 rounded-lg border border-border p-3">
-                <h3 className="text-sm font-bold">Resolve</h3>
+              <section className="space-y-3 rounded-xl border border-border p-3">
+                <h3 className="text-[17px] font-semibold tracking-tight">Resolve</h3>
                 <label className="block text-xs text-muted-foreground" htmlFor="resolve-note">
                   Closure note (required)
                 </label>
@@ -533,7 +533,7 @@ function TriageSheet({
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   rows={2}
-                  className="w-full rounded-lg border border-input bg-card p-2 text-sm"
+                  className="w-full rounded-xl border border-input bg-card p-2 text-sm"
                   placeholder="Runway 17C inspection complete, returned to service 05:12 CT"
                 />
                 <button
@@ -544,7 +544,7 @@ function TriageSheet({
                     setNote("");
                     setMode("detail");
                   }}
-                  className="press min-h-11 w-full rounded-lg bg-success text-sm font-semibold text-background disabled:opacity-50"
+                  className="press min-h-11 w-full rounded-xl bg-success text-sm font-semibold text-background disabled:opacity-50"
                 >
                   Resolve item
                 </button>
@@ -552,12 +552,12 @@ function TriageSheet({
             )}
 
             {alert.state === "resolved" && (
-              <section className="space-y-2 rounded-lg border border-success/40 p-3">
-                <h3 className="text-sm font-bold text-success">Closure exports</h3>
+              <section className="space-y-2 rounded-xl border border-success/40 p-3">
+                <h3 className="text-[17px] font-semibold tracking-tight text-success">Closure exports</h3>
                 <button
                   type="button"
                   onClick={() => printDisruptionSummary(alert, currentUser)}
-                  className="press inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-success text-sm font-semibold text-success"
+                  className="press inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-success text-sm font-semibold text-success"
                 >
                   <FileDown aria-hidden className="size-4" />
                   Printable closure summary (PDF)
@@ -566,14 +566,14 @@ function TriageSheet({
                   <button
                     type="button"
                     onClick={() => exportAuditJson(alert, trail)}
-                    className="press inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border text-sm font-medium"
+                    className="press inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border text-sm font-medium"
                   >
                     <FileJson aria-hidden className="size-4" /> Audit JSON
                   </button>
                   <button
                     type="button"
                     onClick={() => exportAuditCsv(alert, trail)}
-                    className="press inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border text-sm font-medium"
+                    className="press inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border text-sm font-medium"
                   >
                     <Table aria-hidden className="size-4" /> Audit CSV
                   </button>
@@ -581,8 +581,8 @@ function TriageSheet({
               </section>
             )}
 
-            <section className="space-y-2 rounded-lg border border-border p-3">
-              <h3 className="text-sm font-bold">Operator note</h3>
+            <section className="space-y-2 rounded-xl border border-border p-3">
+              <h3 className="text-[17px] font-semibold tracking-tight">Operator note</h3>
               <p className="mono-data text-[11px] text-muted-foreground">
                 Mention a role to page them: {ROLES.map((r) => `@${r.handle}`).join(" ")}
               </p>
@@ -594,7 +594,7 @@ function TriageSheet({
                 value={operatorNote}
                 onChange={(e) => setOperatorNote(e.target.value)}
                 rows={2}
-                className="w-full rounded-lg border border-input bg-card p-2 text-sm"
+                className="w-full rounded-xl border border-input bg-card p-2 text-sm"
                 placeholder="@ramp please hold the push on C17 until sweep completes"
               />
               <div className="flex flex-wrap gap-2">
@@ -616,7 +616,7 @@ function TriageSheet({
                   onNote(alert.id, operatorNote);
                   setOperatorNote("");
                 }}
-                className="press inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                className="press inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-semibold text-primary-foreground disabled:opacity-50"
               >
                 <Send aria-hidden className="size-4" /> Post note to audit trail
               </button>
@@ -624,7 +624,7 @@ function TriageSheet({
 
             <section>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold">Audit trail</h3>
+                <h3 className="text-[17px] font-semibold tracking-tight">Audit trail</h3>
                 <span className="mono-data inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
                   <Lock aria-hidden className="size-3" /> Immutable · {trail.length} entries
                 </span>
@@ -662,7 +662,7 @@ function TriageSheet({
                 onClick={() => onStep(-1)}
                 disabled={position <= 1}
                 aria-label="Previous item"
-                className="press grid size-11 place-items-center rounded-lg border border-border disabled:opacity-40"
+                className="press grid size-11 place-items-center rounded-xl border border-border disabled:opacity-40"
               >
                 <ChevronLeft aria-hidden className="size-5" />
               </button>
@@ -672,7 +672,7 @@ function TriageSheet({
                 onClick={() => onStep(1)}
                 disabled={position >= total}
                 aria-label="Next item"
-                className="press grid size-11 place-items-center rounded-lg border border-border disabled:opacity-40"
+                className="press grid size-11 place-items-center rounded-xl border border-border disabled:opacity-40"
               >
                 <ChevronRight aria-hidden className="size-5" />
               </button>
@@ -684,7 +684,7 @@ function TriageSheet({
               type="button"
               onClick={() => onAck(alert.id)}
               disabled={alert.state !== "new"}
-              className="press inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-border text-sm font-medium disabled:opacity-40"
+              className="press inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-border text-sm font-medium disabled:opacity-40"
             >
               <Check aria-hidden className="size-4" /> Ack
             </button>
@@ -692,7 +692,7 @@ function TriageSheet({
               type="button"
               onClick={() => setMode(mode === "prioritize" ? "detail" : "prioritize")}
               aria-expanded={mode === "prioritize"}
-              className="press inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg bg-amber text-sm font-semibold text-amber-foreground"
+              className="press inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-amber text-sm font-semibold text-amber-foreground"
             >
               <ShieldAlert aria-hidden className="size-4" /> Prioritize
             </button>
@@ -701,7 +701,7 @@ function TriageSheet({
               onClick={() => setMode(mode === "resolve" ? "detail" : "resolve")}
               aria-expanded={mode === "resolve"}
               disabled={alert.state === "resolved"}
-              className="press inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-border text-sm font-medium disabled:opacity-40"
+              className="press inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-border text-sm font-medium disabled:opacity-40"
             >
               <X aria-hidden className="size-4" /> Resolve
             </button>
@@ -718,7 +718,7 @@ function EscalationRulesPanel() {
   const active = escalationRules.filter((r) => r.enabled).length;
 
   return (
-    <section className="rounded-xl border border-border bg-card">
+    <section className="surface-card p-0">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
