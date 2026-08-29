@@ -48,6 +48,15 @@ function TimelinePage() {
     [sinceIds, unseenEventIds],
   );
 
+  const diffSummary = useMemo(() => {
+    const fields = new Set<string>();
+    for (const e of events) {
+      if (!newIds.includes(e.id)) continue;
+      for (const d of e.diff ?? []) fields.add(d.field);
+    }
+    return [...fields].slice(0, 4).join(", ");
+  }, [events, newIds]);
+
   const list = useMemo(
     () => (kind === "all" ? events : events.filter((e) => e.kind === kind)),
     [events, kind],
@@ -109,7 +118,7 @@ function TimelinePage() {
         <Activity aria-hidden className="size-4 shrink-0" />
         <span className="min-w-0 flex-1">
           {newIds.length
-            ? `${newIds.length} ${newIds.length === 1 ? "event" : "events"} changed since you last viewed this board`
+            ? `${newIds.length} ${newIds.length === 1 ? "event" : "events"} changed since you last viewed this board${diffSummary ? ` — ${diffSummary}` : ""}`
             : "You are caught up with the DFW feed"}
         </span>
         {newIds.length > 0 && (
@@ -205,6 +214,29 @@ function TimelineRow({ eventId, isNew }: { eventId: string; isNew: boolean }) {
         </span>
         <span className="mt-1 block text-sm font-semibold leading-snug">{e.title}</span>
         <span className="mt-1 block text-xs text-muted-foreground">{e.detail}</span>
+        {e.diff?.length ? (
+          <span
+            className="mono-data mt-2 flex flex-wrap gap-1.5 text-[10px]"
+            aria-label={`Changed since last view: ${e.diff
+              .map((d) => `${d.field} from ${d.from} to ${d.to}`)
+              .join("; ")}`}
+          >
+            {e.diff.map((d) => (
+              <span
+                key={d.field}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full border px-2 py-0.5",
+                  isNew ? "border-cyan/60 text-cyan" : "border-border text-muted-foreground",
+                )}
+              >
+                <span className="uppercase tracking-wide opacity-70">{d.field}</span>
+                <span aria-hidden className="line-through opacity-60">{d.from}</span>
+                <ArrowRight aria-hidden className="size-2.5" />
+                <span className="font-semibold">{d.to}</span>
+              </span>
+            ))}
+          </span>
+        ) : null}
         <span className="mono-data mt-2 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
           {e.tags.map((t) => (
             <span key={t} className="rounded-full border border-border px-2 py-0.5">
