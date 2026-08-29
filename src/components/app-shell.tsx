@@ -51,29 +51,31 @@ export function AppShell({ children }: { children: ReactNode }) {
         Skip to content
       </a>
 
-      <header className="safe-top fixed inset-x-0 top-0 z-30 border-b border-border bg-background/95 backdrop-blur lg:pl-56">
+      <header className="safe-top fixed inset-x-0 top-0 z-30 border-b border-border bg-background/80 backdrop-blur-xl lg:pl-[4.5rem]">
         <div className="mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5">
           <div className="flex min-w-0 items-center gap-2.5">
-            <span className="relative grid size-9 shrink-0 place-items-center rounded-full border border-amber/40">
+            <span className="relative grid size-9 shrink-0 place-items-center rounded-xl bg-amber/12 ring-1 ring-amber/25">
               <span
                 aria-hidden
-                className="absolute inset-0 rounded-full"
+                className="absolute inset-0 rounded-xl opacity-60"
                 style={{
                   background:
-                    "conic-gradient(from 0deg, color-mix(in oklab, var(--color-amber) 55%, transparent), transparent 45%)",
+                    "conic-gradient(from 0deg, color-mix(in oklab, var(--color-amber) 45%, transparent), transparent 45%)",
                   animation: "radar-sweep 4s linear infinite",
                 }}
               />
               <Radar aria-hidden className="relative size-4 text-amber" />
             </span>
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold leading-tight">DFW Airfield Command</p>
-              <p className="mono-data truncate text-[11px] leading-tight text-muted-foreground">
-                {AIRPORT.shiftDate} · {clock} {AIRPORT.timezone}
+              <p className="truncate text-[15px] font-semibold leading-tight tracking-tight">
+                DFW Airfield Command
+              </p>
+              <p className="truncate text-[12px] leading-tight text-muted-foreground">
+                {AIRPORT.code ?? "DFW"} · <span className="mono-data">{clock}</span> {AIRPORT.timezone}
               </p>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-0.5">
             <NotificationCenter />
             <button
               type="button"
