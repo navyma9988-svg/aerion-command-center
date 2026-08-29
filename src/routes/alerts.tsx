@@ -390,7 +390,7 @@ function TriageSheet({
             <DrawerDescription>{alert.detail}</DrawerDescription>
           </DrawerHeader>
 
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 pb-4">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 pb-24">
             <ol className="flex items-center gap-1" aria-label="Triage progress">
               {steps.map((s, i) => (
                 <li key={s.key} className="flex flex-1 flex-col gap-1">
