@@ -55,10 +55,10 @@ export function NotificationToasts() {
     if (!fresh.length) return;
     setShown((p) => [...p, ...fresh.map((f) => f.id)]);
     if (quietActive) return;
-    setQueue((p) => [...fresh, ...p].slice(0, 3));
+    setQueue((p) => [...fresh, ...p].slice(0, 1));
     const t = window.setTimeout(
       () => setQueue((p) => p.filter((q) => !fresh.some((f) => f.id === q.id))),
-      9000,
+      5000,
     );
     return () => window.clearTimeout(t);
   }, [notifications, shown, quietActive]);
@@ -70,13 +70,13 @@ export function NotificationToasts() {
     <div
       role="region"
       aria-label="New disruption notifications"
-      className="safe-top pointer-events-none fixed inset-x-0 top-16 z-40 mx-auto flex max-w-md flex-col gap-2 px-3 lg:left-56 lg:right-auto lg:mx-0 lg:max-w-sm"
+      className="safe-bottom pointer-events-none fixed inset-x-0 bottom-24 z-40 mx-auto flex max-w-md flex-col gap-2 px-3 lg:inset-x-auto lg:bottom-auto lg:right-5 lg:top-20 lg:mx-0 lg:max-w-sm"
     >
       {queue.map((n) => (
         <div
           key={n.id}
           role="status"
-          className="pointer-events-auto flex items-start gap-2 rounded-xl border border-border bg-elevated/95 p-3 shadow-lg backdrop-blur animate-in slide-in-from-top-2"
+          className="pointer-events-auto flex items-start gap-2 rounded-xl border border-border bg-elevated/95 p-3 shadow-[var(--shadow-card)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 lg:slide-in-from-top-2"
         >
           <span aria-hidden className={cn("mt-1.5 size-2 shrink-0 rounded-full", severityDot(n.event))} />
           <button
@@ -88,7 +88,7 @@ export function NotificationToasts() {
             }}
             className="press min-w-0 flex-1 text-left"
           >
-            <span className="mono-data block text-[10px] uppercase tracking-wide text-muted-foreground">
+            <span className="block text-[11px] uppercase tracking-wide text-muted-foreground">
               {n.event.at} CT · {CHANGE_LABEL[n.event.change ?? "new"]} ·{" "}
               {EVENT_KIND_LABEL[n.event.kind]}
             </span>
@@ -104,7 +104,7 @@ export function NotificationToasts() {
               dismissNotification(n.id);
               setQueue((p) => p.filter((q) => q.id !== n.id));
             }}
-            className="press grid size-11 shrink-0 place-items-center rounded-lg hover:bg-secondary"
+            className="press grid size-11 shrink-0 place-items-center rounded-xl hover:bg-secondary"
           >
             <X aria-hidden className="size-4" />
           </button>
@@ -149,11 +149,11 @@ export function NotificationCenter() {
             ? `Notification center, ${unreadCount} unread disruption ${unreadCount === 1 ? "alert" : "alerts"}`
             : "Notification center, no unread alerts"
         }
-        className="press relative grid size-11 place-items-center rounded-lg hover:bg-secondary"
+        className="press relative grid size-11 place-items-center rounded-xl hover:bg-secondary"
       >
         <Bell aria-hidden className="size-5" />
         {unreadCount > 0 && (
-          <span className="mono-data absolute right-1 top-1 min-w-4 rounded-full bg-coral px-1 text-[10px] font-semibold leading-4 text-background">
+          <span className="mono-data absolute right-1 top-1 min-w-4 rounded-full bg-coral px-1 text-[11px] font-semibold leading-4 text-background">
             {unreadCount}
           </span>
         )}
@@ -196,7 +196,7 @@ export function NotificationCenter() {
         </div>
 
         {(quietActive || mutedCount > 0) && (
-          <p className="mono-data mx-4 mb-3 rounded-lg border border-border bg-secondary/40 px-3 py-2 text-[11px] text-muted-foreground">
+          <p className="mx-4 mb-3 rounded-xl border border-border bg-secondary/40 px-3 py-2 text-[12px] text-muted-foreground">
             {quietActive
               ? `Quiet hours ${notifPrefs.quietStart}–${notifPrefs.quietEnd} CT — banners suppressed, items still land here.`
               : `${mutedCount} notification${mutedCount === 1 ? "" : "s"} filtered out by your severity and terminal settings.`}
@@ -206,7 +206,7 @@ export function NotificationCenter() {
         {settings && (
           <div id="notif-settings" className="space-y-3 border-y border-border px-4 py-3">
             <fieldset>
-              <legend className="mono-data text-[11px] uppercase tracking-wide text-muted-foreground">
+              <legend className="text-[12px] uppercase tracking-wide text-muted-foreground">
                 Severity
               </legend>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -230,7 +230,7 @@ export function NotificationCenter() {
             </fieldset>
 
             <fieldset>
-              <legend className="mono-data text-[11px] uppercase tracking-wide text-muted-foreground">
+              <legend className="text-[12px] uppercase tracking-wide text-muted-foreground">
                 Terminal
               </legend>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -265,7 +265,7 @@ export function NotificationCenter() {
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label htmlFor="quiet-start" className="mono-data text-[11px] text-muted-foreground">
+                  <label htmlFor="quiet-start" className="text-[12px] text-muted-foreground">
                     From
                   </label>
                   <input
@@ -273,11 +273,11 @@ export function NotificationCenter() {
                     type="time"
                     value={notifPrefs.quietStart}
                     onChange={(e) => setNotifPrefs({ quietStart: e.target.value })}
-                    className="mono-data min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm"
+                    className="mono-data min-h-11 w-full rounded-xl border border-input bg-card px-3 text-sm"
                   />
                 </div>
                 <div>
-                  <label htmlFor="quiet-end" className="mono-data text-[11px] text-muted-foreground">
+                  <label htmlFor="quiet-end" className="text-[12px] text-muted-foreground">
                     To
                   </label>
                   <input
@@ -285,7 +285,7 @@ export function NotificationCenter() {
                     type="time"
                     value={notifPrefs.quietEnd}
                     onChange={(e) => setNotifPrefs({ quietEnd: e.target.value })}
-                    className="mono-data min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm"
+                    className="mono-data min-h-11 w-full rounded-xl border border-input bg-card px-3 text-sm"
                   />
                 </div>
               </div>
@@ -317,7 +317,7 @@ export function NotificationCenter() {
                 }}
                 className="press min-w-0 flex-1 text-left"
               >
-                <span className="mono-data block text-[10px] uppercase tracking-wide text-muted-foreground">
+                <span className="block text-[11px] uppercase tracking-wide text-muted-foreground">
                   {n.event.at} CT · {n.mention ? "Mention" : CHANGE_LABEL[n.event.change ?? "new"]}
                   {!n.read && <span className="ml-2 text-coral">Unread</span>}
                 </span>
@@ -335,7 +335,7 @@ export function NotificationCenter() {
                 type="button"
                 aria-label={`Dismiss notification: ${n.event.title}`}
                 onClick={() => dismissNotification(n.id)}
-                className="press grid size-11 shrink-0 place-items-center rounded-lg hover:bg-secondary"
+                className="press grid size-11 shrink-0 place-items-center rounded-xl hover:bg-secondary"
               >
                 <X aria-hidden className="size-4" />
               </button>

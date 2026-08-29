@@ -46,48 +46,50 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className={cn("min-h-dvh bg-background", density === "compact" && "text-[0.94rem]")}>
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
       >
         Skip to content
       </a>
 
-      <header className="safe-top fixed inset-x-0 top-0 z-30 border-b border-border bg-background/95 backdrop-blur lg:pl-56">
+      <header className="safe-top fixed inset-x-0 top-0 z-30 border-b border-border bg-background/80 backdrop-blur-xl lg:pl-[4.5rem]">
         <div className="mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5">
           <div className="flex min-w-0 items-center gap-2.5">
-            <span className="relative grid size-9 shrink-0 place-items-center rounded-full border border-amber/40">
+            <span className="relative grid size-9 shrink-0 place-items-center rounded-xl bg-amber/12 ring-1 ring-amber/25">
               <span
                 aria-hidden
-                className="absolute inset-0 rounded-full"
+                className="absolute inset-0 rounded-xl opacity-60"
                 style={{
                   background:
-                    "conic-gradient(from 0deg, color-mix(in oklab, var(--color-amber) 55%, transparent), transparent 45%)",
+                    "conic-gradient(from 0deg, color-mix(in oklab, var(--color-amber) 45%, transparent), transparent 45%)",
                   animation: "radar-sweep 4s linear infinite",
                 }}
               />
               <Radar aria-hidden className="relative size-4 text-amber" />
             </span>
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold leading-tight">DFW Airfield Command</p>
-              <p className="mono-data truncate text-[11px] leading-tight text-muted-foreground">
-                {AIRPORT.shiftDate} · {clock} {AIRPORT.timezone}
+              <p className="truncate text-[15px] font-semibold leading-tight tracking-tight">
+                DFW Airfield Command
+              </p>
+              <p className="truncate text-[12px] leading-tight text-muted-foreground">
+                {AIRPORT.code ?? "DFW"} · <span className="mono-data">{clock}</span> {AIRPORT.timezone}
               </p>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-0.5">
             <NotificationCenter />
             <button
               type="button"
               onClick={() => setSearchOpen(true)}
               aria-label="Open command search"
               aria-keyshortcuts="Meta+K"
-              className="press grid size-11 place-items-center rounded-lg hover:bg-secondary"
+              className="press grid size-11 place-items-center rounded-xl hover:bg-secondary"
             >
               <Search aria-hidden className="size-5" />
             </button>
             <Sheet>
               <SheetTrigger
                 aria-label="Open tweaks panel"
-                className="press grid size-11 place-items-center rounded-lg hover:bg-secondary"
+                className="press grid size-11 place-items-center rounded-xl hover:bg-secondary"
               >
                 <Settings2 aria-hidden className="size-5" />
               </SheetTrigger>
@@ -129,38 +131,41 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
         <div className="runway-strip" data-state={stripState} aria-hidden />
         {simulation && (
-          <p
-            role="status"
-            className="mono-data bg-coral/15 px-4 py-1 text-center text-[11px] text-coral"
-          >
+          <p role="status" className="bg-coral/12 px-4 py-1 text-center text-[12px] font-medium text-coral">
             Simulation active — demo data
           </p>
         )}
       </header>
 
-      {/* Desktop rail */}
+      {/* Desktop icon rail */}
       <nav
         aria-label="Sections"
-        className="fixed inset-y-0 left-0 z-40 hidden w-56 flex-col gap-1 border-r border-border bg-sidebar p-3 lg:flex"
+        className="fixed inset-y-0 left-0 z-40 hidden w-[4.5rem] flex-col items-center gap-1.5 border-r border-border bg-sidebar py-4 lg:flex"
       >
-        <p className="mono-data px-3 pb-4 pt-3 text-xs tracking-widest text-muted-foreground">DFW OPS</p>
+        <span aria-hidden className="mb-4 grid size-9 place-items-center rounded-xl bg-amber/12 text-amber">
+          <Radar className="size-4" />
+        </span>
         {NAV.map(({ to, label, icon: Icon }) => (
           <Link
             key={to}
             to={to}
-            className="press flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent"
+            title={label}
+            aria-label={label}
+            className="press group relative grid size-11 place-items-center rounded-xl text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
             activeOptions={{ exact: to === "/" }}
-            activeProps={{ className: "bg-sidebar-accent text-amber" }}
+            activeProps={{ className: "bg-amber/12 text-amber" }}
           >
             <Icon aria-hidden className="size-5" />
-            {label}
+            <span className="pointer-events-none absolute left-[3.5rem] z-50 hidden whitespace-nowrap rounded-lg bg-elevated px-2 py-1 text-xs font-medium text-foreground shadow-md group-hover:block">
+              {label}
+            </span>
             {to === "/alerts" && openCount > 0 && (
-              <span className="mono-data ml-auto rounded-full bg-coral/20 px-2 py-0.5 text-xs text-coral">
+              <span className="mono-data absolute right-1 top-1 min-w-4 rounded-full bg-coral px-1 text-[10px] font-semibold leading-4 text-background">
                 {openCount}
               </span>
             )}
             {to === "/timeline" && unseenEventIds.length > 0 && (
-              <span className="mono-data ml-auto rounded-full bg-cyan/20 px-2 py-0.5 text-xs text-cyan">
+              <span className="mono-data absolute right-1 top-1 min-w-4 rounded-full bg-cyan px-1 text-[10px] font-semibold leading-4 text-background">
                 {unseenEventIds.length}
               </span>
             )}
@@ -168,34 +173,34 @@ export function AppShell({ children }: { children: ReactNode }) {
         ))}
       </nav>
 
-      <main id="main" className="mx-auto max-w-5xl px-4 pb-28 pt-24 lg:pb-12 lg:pl-60 lg:pr-6">
+      <main id="main" className="mx-auto max-w-5xl px-4 pb-32 pt-24 lg:pb-12 lg:pl-[5.5rem] lg:pr-6">
         {children}
       </main>
 
-      {/* Mobile bottom bar */}
+      {/* Mobile floating pill dock */}
       <nav
         aria-label="Sections"
-        className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur lg:hidden"
+        className="safe-bottom fixed inset-x-0 bottom-0 z-30 px-3 pb-3 lg:hidden"
       >
-        <ul className="mx-auto grid max-w-lg grid-cols-6">
+        <ul className="mx-auto flex max-w-lg items-center justify-between gap-0.5 rounded-[22px] border border-border bg-card/85 p-1.5 shadow-[var(--shadow-card)] backdrop-blur-xl">
           {NAV.map(({ to, label, icon: Icon }) => (
-            <li key={to}>
+            <li key={to} className="min-w-0 flex-1">
               <Link
                 to={to}
                 activeOptions={{ exact: to === "/" }}
-                activeProps={{ "aria-current": "page", className: "text-amber" }}
+                activeProps={{ "aria-current": "page", className: "text-amber bg-amber/12" }}
                 inactiveProps={{ className: "text-muted-foreground" }}
-                className="press relative flex min-h-14 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[10px] font-medium"
+                className="press relative flex min-h-[46px] flex-col items-center justify-center gap-0.5 rounded-2xl px-0.5 py-1.5 text-[10px] font-medium"
               >
-                <Icon aria-hidden className="size-5" />
+                <Icon aria-hidden className="size-[18px]" />
                 {label}
                 {to === "/alerts" && openCount > 0 && (
-                  <span className="mono-data absolute right-2 top-1.5 rounded-full bg-coral px-1.5 text-[10px] text-background">
+                  <span className="mono-data absolute right-1.5 top-1 min-w-4 rounded-full bg-coral px-1 text-[9px] font-semibold leading-4 text-background">
                     {openCount}
                   </span>
                 )}
                 {to === "/timeline" && unseenEventIds.length > 0 && (
-                  <span className="mono-data absolute right-2 top-1.5 rounded-full bg-cyan px-1.5 text-[10px] text-background">
+                  <span className="mono-data absolute right-1.5 top-1 min-w-4 rounded-full bg-cyan px-1 text-[9px] font-semibold leading-4 text-background">
                     {unseenEventIds.length}
                   </span>
                 )}

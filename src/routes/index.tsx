@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useOps } from "@/lib/ops-store";
 import { AIRPORT, OWNERS, RUNWAYS, TERMINAL_HEALTH, WIND } from "@/lib/airfield-data";
-import { ChevronRight, RefreshCw, Wind } from "lucide-react";
+import { Check, ChevronRight, RefreshCw, TriangleAlert, Wind } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -67,35 +67,47 @@ function PulsePage() {
 
   return (
     <div className="stagger-in space-y-4">
-      <section className="rounded-xl border border-border bg-card p-4">
+      <section
+        className={cn(
+          "surface-card relative overflow-hidden",
+          (simulation || openAlerts.some((a) => a.severity === "p1")) && "hero-degraded",
+        )}
+      >
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
           <div className="min-w-0">
-            <h1 className="text-xl font-bold">DFW Airfield Pulse</h1>
-            <p className="mono-data text-xs text-muted-foreground">
-              As of {AIRPORT.shiftDate.slice(5)} {AIRPORT.asOf} {AIRPORT.timezone} · synced {syncedAt}
-            </p>
+            <p className="text-[13px] font-medium text-muted-foreground">DFW Airfield Pulse</p>
+            <h1 className="mt-1 text-[28px] leading-tight">
+              {WIND.approach} <span className="text-muted-foreground">·</span> {WIND.flow}
+            </h1>
           </div>
           <button
             type="button"
             onClick={refresh}
-            className="press grid size-11 shrink-0 place-items-center rounded-lg border border-border hover:bg-secondary"
+            className="press grid size-11 shrink-0 place-items-center rounded-xl bg-elevated text-muted-foreground hover:text-foreground"
             aria-label="Refresh program data"
           >
             <RefreshCw aria-hidden className={cn("size-4", syncing && "animate-spin")} />
           </button>
         </div>
-        <p className="mt-4 text-4xl font-bold">
-          <span className="mono-data">{counts.open}</span>{" "}
-          <span className="text-base font-medium text-muted-foreground">
-            open actions across the program
+        <p className="mt-2 flex flex-wrap items-center text-[13px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <Wind aria-hidden className="size-3.5" />
+            <span className="mono-data">
+              {WIND.dir}° / {WIND.kt}kt
+            </span>
+          </span>
+          <span className="dot-sep">
+            As of <span className="mono-data">{AIRPORT.asOf}</span> {AIRPORT.timezone}
+          </span>
+          <span className="dot-sep">
+            synced <span className="mono-data">{syncedAt}</span>
           </span>
         </p>
-        <p className="mono-data mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1">
-            <Wind aria-hidden className="size-3.5" /> {WIND.dir}° / {WIND.kt}kt
+        <p className="mt-5 flex items-baseline gap-2">
+          <span className="mono-data text-5xl font-bold tracking-tight text-amber">
+            <CountUp value={counts.open} />
           </span>
-          <span>{WIND.flow}</span>
-          <span className="text-amber">{WIND.approach}</span>
+          <span className="text-[15px] font-medium text-muted-foreground">open actions</span>
         </p>
       </section>
 
@@ -109,47 +121,55 @@ function PulsePage() {
         <StatTile label="Closing" value={counts.closing} sub="sign-off pending" tone="cyan" />
       </section>
 
-      <section aria-labelledby="disrupt-h" className="rounded-xl border border-border bg-card p-4">
+      <section aria-labelledby="disrupt-h" className="surface-card">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-          <h2 id="disrupt-h" className="text-sm font-bold">
-            Open disruptions
-          </h2>
+          <h2 id="disrupt-h">Open disruptions</h2>
           <Link
             to="/alerts"
             search={{ item: "", status: "open", severity: "", terminal: "", runway: "" }}
-            className="press inline-flex min-h-11 items-center gap-1 text-xs font-medium text-cyan"
+            className="press inline-flex min-h-11 items-center gap-1 text-[13px] font-semibold text-amber"
           >
             Triage <ChevronRight aria-hidden className="size-4" />
           </Link>
         </div>
         {openAlerts.length === 0 ? (
-          <p className="mt-2 text-sm text-muted-foreground">Nothing open. Board is clear.</p>
+          <div className="flex flex-col items-center gap-2 py-8 text-center">
+            <span className="grid size-11 place-items-center rounded-full bg-success/12 text-success">
+              <Check aria-hidden className="size-5" />
+            </span>
+            <p className="text-[15px] font-semibold">Board is clear</p>
+            <p className="text-[13px] text-muted-foreground">
+              No open disruptions on the airfield right now.
+            </p>
+          </div>
         ) : (
-          <ul className="mt-2 space-y-2">
+          <ul className="mt-1 divide-y divide-border">
             {openAlerts.slice(0, 3).map((a) => (
-              <li key={a.id} className="flex items-start gap-2 text-sm">
+              <li key={a.id} className="row-tap">
                 <span
                   className={cn(
-                    "mono-data mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold",
-                    a.severity === "p1" ? "bg-coral/20 text-coral" : "bg-amber/20 text-amber",
+                    "grid size-9 shrink-0 place-items-center rounded-full",
+                    a.severity === "p1" ? "bg-coral/12 text-coral" : "bg-amber/12 text-amber",
                   )}
                 >
-                  {a.severity.toUpperCase()}
+                  <TriangleAlert aria-hidden className="size-[18px]" />
                 </span>
-                <span className="min-w-0">
-                  <span className="line-clamp-2">{a.title}</span>
-                  <span className="mono-data block text-[11px] text-muted-foreground">
-                    {a.time} {AIRPORT.timezone} · {a.runway ?? a.terminal ?? "Airside"}
+                <span className="min-w-0 flex-1">
+                  <span className="line-clamp-2 text-[15px] font-semibold leading-snug">{a.title}</span>
+                  <span className="mt-0.5 block text-[13px] text-muted-foreground">
+                    {a.severity.toUpperCase()}
+                    <span className="dot-sep">{a.runway ?? a.terminal ?? "Airside"}</span>
                   </span>
                 </span>
+                <span className="mono-data shrink-0 text-[13px] text-muted-foreground">{a.time}</span>
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      <section aria-labelledby="aging-h" className="rounded-xl border border-border bg-card p-4">
-        <h2 id="aging-h" className="text-sm font-bold">
+      <section aria-labelledby="aging-h" className="surface-card">
+        <h2 id="aging-h">
           Overdue aging
         </h2>
         <ul className="mt-3 space-y-3">
@@ -157,9 +177,9 @@ function PulsePage() {
             const days = i === 0 ? 21 : 14;
             return (
               <li key={a.id}>
-                <div className="mono-data flex items-baseline justify-between text-xs">
-                  <span>{a.id}</span>
-                  <span className="text-coral">{days}d</span>
+                <div className="flex items-baseline justify-between text-[13px]">
+                  <span className="mono-data font-medium">{a.id}</span>
+                  <span className="mono-data text-coral">{days}d</span>
                 </div>
                 <div className="mt-1 h-2 overflow-hidden rounded-full bg-secondary">
                   <div
@@ -173,14 +193,14 @@ function PulsePage() {
         </ul>
       </section>
 
-      <section aria-labelledby="load-h" className="rounded-xl border border-border bg-card p-4">
-        <h2 id="load-h" className="text-sm font-bold">
+      <section aria-labelledby="load-h" className="surface-card">
+        <h2 id="load-h">
           Workload by owner
         </h2>
         <ul className="mt-3 space-y-3">
           {workload.map((w) => (
             <li key={w.initials}>
-              <div className="flex items-baseline justify-between text-xs">
+              <div className="flex items-baseline justify-between text-[13px]">
                 <span className="font-medium">{w.name}</span>
                 <span className="mono-data text-muted-foreground">{w.total}</span>
               </div>
@@ -197,7 +217,7 @@ function PulsePage() {
             </li>
           ))}
         </ul>
-        <p className="mono-data mt-3 flex gap-4 text-[11px] text-muted-foreground">
+        <p className="mt-4 flex gap-4 text-[12px] text-muted-foreground">
           <span className="inline-flex items-center gap-1">
             <span aria-hidden className="size-2 rounded-full bg-coral" /> Overdue
           </span>
@@ -207,19 +227,20 @@ function PulsePage() {
         </p>
       </section>
 
-      <section aria-labelledby="rw-h" className="rounded-xl border border-border bg-card p-4">
-        <h2 id="rw-h" className="text-sm font-bold">
+      <section aria-labelledby="rw-h" className="surface-card">
+        <h2 id="rw-h">
           Runway status
         </h2>
-        <ul className="mono-data mt-3 grid gap-2 text-xs sm:grid-cols-2">
+        <ul className="mt-3 grid gap-2 text-[13px] sm:grid-cols-2">
           {RUNWAYS.map((r) => (
-            <li key={r.id} className="flex items-center justify-between rounded-md bg-elevated px-3 py-2">
-              <span>{r.id}</span>
+            <li key={r.id} className="flex min-h-11 items-center justify-between rounded-xl bg-elevated px-3.5 py-2">
+              <span className="mono-data font-medium">{r.id}</span>
               <span
                 className={cn(
                   r.status === "active" && "text-success",
                   r.status === "notam" && "text-amber",
                   r.status === "closed" && "text-coral",
+                  "font-medium",
                 )}
               >
                 {r.status === "active" ? "Active" : r.status === "notam" ? "NOTAM" : "Closed"}
@@ -229,21 +250,25 @@ function PulsePage() {
         </ul>
       </section>
 
-      <section aria-labelledby="th-h" className="rounded-xl border border-border bg-card p-4">
-        <h2 id="th-h" className="text-sm font-bold">
+      <section aria-labelledby="th-h" className="surface-card">
+        <h2 id="th-h">
           Terminal health
         </h2>
         <ul className="mt-3 space-y-2">
           {TERMINAL_HEALTH.map((t) => (
             <li key={t.terminal}>
-              <details className="group rounded-lg bg-elevated">
-                <summary className="press flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-sm">
-                  <span className="font-medium">Terminal {t.terminal}</span>
-                  <span className="mono-data text-xs text-muted-foreground">
-                    {t.standsAvailable}/{t.standsTotal} stands · {t.securityWaitMin} min
+              <details className="group rounded-2xl bg-elevated">
+                <summary className="press flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3.5 py-2.5 text-[15px]">
+                  <span className="font-semibold">Terminal {t.terminal}</span>
+                  <span className="text-[13px] text-muted-foreground">
+                    <span className="mono-data">
+                      {t.standsAvailable}/{t.standsTotal}
+                    </span>{" "}
+                    stands<span className="dot-sep" />
+                    <span className="mono-data">{t.securityWaitMin}</span> min
                   </span>
                 </summary>
-                <div className="mono-data space-y-1 px-3 pb-3 text-xs text-muted-foreground">
+                <div className="space-y-1 px-3.5 pb-3.5 text-[13px] text-muted-foreground">
                   <p>{t.belts}</p>
                   <p>
                     {t.openActions} open action{t.openActions === 1 ? "" : "s"}
@@ -257,7 +282,7 @@ function PulsePage() {
       </section>
 
       {simulation && (
-        <p role="status" className="mono-data text-center text-xs text-coral">
+        <p role="status" className="text-center text-[13px] font-medium text-coral">
           Ground stop in effect — arrivals reprotected until 1615 CT
         </p>
       )}
@@ -277,7 +302,7 @@ function StatTile({
   tone: "coral" | "amber" | "cyan" | "muted";
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className="surface-card">
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
       <p
         className={cn(
@@ -288,9 +313,30 @@ function StatTile({
           tone === "muted" && "text-foreground",
         )}
       >
-        {value}
+        <CountUp value={value} />
       </p>
-      <p className="mt-1 text-[11px] text-muted-foreground">{sub}</p>
+      <p className="mt-2 text-[12px] text-muted-foreground">{sub}</p>
     </div>
   );
+}
+
+function CountUp({ value }: { value: number }) {
+  const [n, setN] = useState(0);
+  const from = useRef(0);
+  useEffect(() => {
+    const start = from.current;
+    if (start === value) return;
+    const t0 = performance.now();
+    let raf = 0;
+    const tick = (t: number) => {
+      const p = Math.min(1, (t - t0) / 500);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setN(Math.round(start + (value - start) * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+      else from.current = value;
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+  return <>{n}</>;
 }

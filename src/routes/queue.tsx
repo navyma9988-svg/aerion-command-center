@@ -80,8 +80,8 @@ function QueuePage() {
   return (
     <div className="space-y-4">
       <header>
-        <h1 className="text-xl font-bold">DFW Airfield Queue</h1>
-        <p className="mono-data text-xs text-muted-foreground">{list.length} shown · worst first</p>
+        <h1 className="text-[26px] font-bold tracking-tight">DFW Airfield Queue</h1>
+        <p className="text-xs text-muted-foreground">{list.length} shown · worst first</p>
       </header>
 
       <div className="relative">
@@ -92,7 +92,7 @@ function QueuePage() {
           onChange={(e) => setQ(e.target.value)}
           aria-label="Search actions, owners, IDs"
           placeholder="Search actions, owners, IDs"
-          className="min-h-11 w-full rounded-lg border border-input bg-card pl-9 pr-3 text-sm placeholder:text-muted-foreground"
+          className="min-h-11 w-full rounded-xl border border-input bg-card pl-9 pr-3 text-sm placeholder:text-muted-foreground"
         />
       </div>
 
@@ -121,16 +121,16 @@ function QueuePage() {
             <button
               type="button"
               onClick={() => navigate({ search: (p) => ({ ...p, action: a.id }) })}
-              className="press w-full rounded-xl border border-border bg-card p-3 text-left hover:bg-elevated"
+              className="press w-full surface-card p-4 text-left hover:bg-elevated"
             >
               <div className="flex items-center gap-2">
                 <span className="mono-data text-xs font-semibold">{a.id}</span>
                 <span
                   className={cn(
-                    "mono-data rounded px-1.5 py-0.5 text-[10px] font-semibold",
+                    "mono-data rounded px-1.5 py-0.5 text-[11px] font-semibold",
                     a.status === "overdue" && "bg-coral/20 text-coral",
                     a.status === "due_today" && "bg-amber/20 text-amber",
-                    a.status === "closing" && "bg-cyan/20 text-cyan",
+                    a.status === "closing" && "bg-amber/12 text-amber",
                     a.status === "complete" && "bg-success/20 text-success",
                     (a.status === "open" || a.status === "blocked") && "bg-secondary text-muted-foreground",
                   )}
@@ -138,11 +138,11 @@ function QueuePage() {
                   {STATUS_LABEL[a.status]}
                 </span>
                 {a.priority === "Critical" && (
-                  <span className="mono-data ml-auto text-[10px] text-coral">CRITICAL</span>
+                  <span className="ml-auto text-[11px] text-coral">CRITICAL</span>
                 )}
               </div>
               <p className="mt-1.5 text-sm font-medium">{a.title}</p>
-              <p className="mono-data mt-1 text-[11px] text-muted-foreground">
+              <p className="mt-1 text-[12px] text-muted-foreground">
                 {a.owner} · Due {a.due} · Upd {a.updatedDaysAgo}d · {a.area}
               </p>
             </button>
@@ -189,12 +189,12 @@ function QueuePage() {
                 </dl>
                 <p className="text-sm text-muted-foreground">{selected.detail}</p>
                 <section>
-                  <h3 className="text-sm font-bold">Activity</h3>
+                  <h3 className="text-[17px] font-semibold tracking-tight">Activity</h3>
                   <ol className="mt-2 space-y-2 border-l border-border pl-3">
                     {selected.activity.map((ev, i) => (
                       <li key={i} className="text-sm">
                         <p>{ev.text}</p>
-                        <p className="mono-data text-[11px] text-muted-foreground">
+                        <p className="text-[12px] text-muted-foreground">
                           {ev.who} · {ev.at}
                         </p>
                       </li>
@@ -208,14 +208,14 @@ function QueuePage() {
                       completeAction(selected.id);
                       navigate({ search: (p) => ({ ...p, action: "" }) });
                     }}
-                    className="press inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
+                    className="press inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground"
                   >
                     <Check aria-hidden className="size-4" /> Mark complete
                   </button>
                   <button
                     type="button"
                     onClick={() => navigate({ to: "/alerts", search: { item: "", status: "open", severity: "", terminal: "", runway: "" } })}
-                    className="press inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border px-4 text-sm font-medium"
+                    className="press inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border px-4 text-sm font-medium"
                   >
                     Linked alerts <ArrowUpRight aria-hidden className="size-4" />
                   </button>

@@ -66,8 +66,8 @@ function TimelinePage() {
     <div className="space-y-4">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <div className="min-w-0">
-          <h1 className="text-xl font-bold">Live timeline</h1>
-          <p className="mono-data text-xs text-muted-foreground">
+          <h1 className="text-[26px] font-bold tracking-tight">Live timeline</h1>
+          <p className="text-xs text-muted-foreground">
             {streaming ? `Streaming ${speed}×` : "Paused"} · {events.length} events · {clock} CT
           </p>
         </div>
@@ -82,9 +82,9 @@ function TimelinePage() {
         </button>
       </header>
 
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3">
+      <div className="flex flex-wrap items-center gap-2 surface-card p-4">
         <Gauge aria-hidden className="size-4 shrink-0 text-muted-foreground" />
-        <span id="sim-speed-label" className="mono-data text-[11px] uppercase tracking-wide text-muted-foreground">
+        <span id="sim-speed-label" className="text-[12px] uppercase tracking-wide text-muted-foreground">
           Simulation speed
         </span>
         <div role="group" aria-labelledby="sim-speed-label" className="ml-auto flex gap-1.5">
@@ -160,7 +160,7 @@ function TimelinePage() {
           <TimelineRow key={e.id} eventId={e.id} isNew={newIds.includes(e.id)} />
         ))}
         {!list.length && (
-          <li className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+          <li className="surface-card p-0 p-6 text-center text-sm text-muted-foreground">
             No {kind === "all" ? "" : EVENT_KIND_LABEL[kind].toLowerCase()} events on this shift yet.
           </li>
         )}
@@ -201,13 +201,13 @@ function TimelineRow({ eventId, isNew }: { eventId: string; isNew: boolean }) {
           isNew ? "border-cyan/60 bg-cyan/5" : "border-border",
         )}
       >
-        <span className="mono-data flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+        <span className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wide text-muted-foreground">
           <span>{e.at} CT</span>
           <span aria-hidden>·</span>
           <span>{EVENT_KIND_LABEL[e.kind]}</span>
           <span className={cn("font-semibold", tone)}>{CHANGE_LABEL[e.change ?? "updated"]}</span>
           {isNew && (
-            <span className="rounded-full bg-cyan/20 px-2 py-0.5 text-[10px] font-semibold text-cyan">
+            <span className="rounded-full bg-cyan/20 px-2 py-0.5 text-[11px] font-semibold text-cyan">
               New since last view
             </span>
           )}
@@ -216,7 +216,7 @@ function TimelineRow({ eventId, isNew }: { eventId: string; isNew: boolean }) {
         <span className="mt-1 block text-xs text-muted-foreground">{e.detail}</span>
         {e.diff?.length ? (
           <span
-            className="mono-data mt-2 flex flex-wrap gap-1.5 text-[10px]"
+            className="mono-data mt-2 flex flex-wrap gap-1.5 text-[11px]"
             aria-label={`Changed since last view: ${e.diff
               .map((d) => `${d.field} from ${d.from} to ${d.to}`)
               .join("; ")}`}
@@ -237,7 +237,7 @@ function TimelineRow({ eventId, isNew }: { eventId: string; isNew: boolean }) {
             ))}
           </span>
         ) : null}
-        <span className="mono-data mt-2 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+        <span className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
           {e.tags.map((t) => (
             <span key={t} className="rounded-full border border-border px-2 py-0.5">
               {t}
