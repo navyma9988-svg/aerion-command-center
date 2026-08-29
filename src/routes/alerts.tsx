@@ -147,7 +147,7 @@ function AlertsPage() {
         ))}
       </div>
 
-      <fieldset className="space-y-2">
+      <fieldset className="w-full min-w-0 space-y-2">
         <legend className="sr-only">Filters</legend>
         <div className="flex gap-2 overflow-x-auto pb-1">
           {(["p1", "p2", "p3"] as Severity[]).map((s) => (
