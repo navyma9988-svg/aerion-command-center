@@ -1,53 +1,53 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus, Crosshair } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FLIGHTS, RUNWAYS, TERMINAL_HEALTH, WIND, type Flight } from "@/lib/airfield-data";
+import { PIERS, RUNWAY_GEOM, TAXIWAYS, TOWER, WORLD } from "@/lib/airfield-geo";
 
 /**
- * ASDE-X style ground surveillance display for DFW.
- * Purely presentational — all data and selection state comes from props.
+ * ASDE-X style ground surveillance display for DFW, drawn from surveyed
+ * runway-end coordinates. Purely presentational — all data and selection
+ * state comes from props.
  */
 
-export const WORLD = { w: 1000, h: 1400 };
-const TOWER = { x: 500, y: 700 };
+export { WORLD, RUNWAY_GEOM };
 
-type Seg = { x1: number; y1: number; x2: number; y2: number };
-
-/** Runway pavement geometry in world space (north up, south flow). */
-export const RUNWAY_GEOM: Record<string, Seg> = {
-  "17R/35L": { x1: 118, y1: 130, x2: 118, y2: 1280 },
-  "17C/35C": { x1: 196, y1: 120, x2: 196, y2: 1290 },
-  "17L/35R": { x1: 274, y1: 240, x2: 274, y2: 1180 },
-  "18L/36R": { x1: 748, y1: 120, x2: 748, y2: 1290 },
-  "18R/36L": { x1: 826, y1: 130, x2: 826, y2: 1280 },
-  "13R/31L": { x1: 330, y1: 168, x2: 610, y2: 448 },
-  "13L/31R": { x1: 430, y1: 980, x2: 706, y2: 1256 },
+export type RadarFilters = {
+  onTime: boolean;
+  delayed: boolean;
+  closedAffected: boolean;
+  notam: boolean;
 };
 
-/** Terminal horseshoes between the runway pairs. */
-const PIERS = [
-  { t: "A", cx: 620, cy: 330, open: "east" },
-  { t: "B", cx: 404, cy: 330, open: "west" },
-  { t: "C", cx: 620, cy: 700, open: "east" },
-  { t: "D", cx: 404, cy: 700, open: "west" },
-  { t: "E", cx: 404, cy: 1060, open: "west" },
-] as const;
+export const ALL_FILTERS: RadarFilters = {
+  onTime: true,
+  delayed: true,
+  closedAffected: true,
+  notam: true,
+};
+
+type ViewState = { k: number; x: number; y: number };
+const DEFAULT_VIEW: ViewState = { k: 1, x: 0, y: 0 };
+const VIEW_KEY = "dfw.radar.view";
+
+/** Session-scoped memory so zoom/pan survives tab switches. */
+function readStoredView(): ViewState {
+  if (typeof window === "undefined") return DEFAULT_VIEW;
+  try {
+    const raw = window.sessionStorage.getItem(VIEW_KEY);
+    if (!raw) return DEFAULT_VIEW;
+    const v = JSON.parse(raw) as ViewState;
+    if (typeof v?.k === "number" && typeof v.x === "number" && typeof v.y === "number") return v;
+  } catch {
+    /* ignore */
+  }
+  return DEFAULT_VIEW;
+}
 
 function horseshoePath(cx: number, cy: number, open: "east" | "west", r: number) {
   const sweep = open === "east" ? 0 : 1;
   return `M ${cx},${cy - r} A ${r},${r} 0 0 ${sweep} ${cx},${cy + r}`;
 }
-
-const TAXIWAYS: Seg[] = [
-  { x1: 118, y1: 330, x2: 404, y2: 330 },
-  { x1: 118, y1: 700, x2: 404, y2: 700 },
-  { x1: 118, y1: 1060, x2: 404, y2: 1060 },
-  { x1: 620, y1: 330, x2: 826, y2: 330 },
-  { x1: 620, y1: 700, x2: 826, y2: 700 },
-  { x1: 512, y1: 220, x2: 512, y2: 1180 },
-  { x1: 274, y1: 480, x2: 404, y2: 480 },
-  { x1: 620, y1: 900, x2: 748, y2: 900 },
-];
 
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
@@ -57,6 +57,7 @@ export interface RadarProps {
   layer: "gates" | "actions" | "work";
   focus: string;
   terminal: string;
+  filters?: RadarFilters;
   runwayStatus: Map<string, string>;
   alertsByTerminal: Map<string, number>;
   onFocusFlight: (f: Flight) => void;
@@ -67,6 +68,7 @@ export function AirfieldRadar({
   layer,
   focus,
   terminal,
+  filters = ALL_FILTERS,
   runwayStatus,
   alertsByTerminal,
   onFocusFlight,
@@ -74,9 +76,36 @@ export function AirfieldRadar({
 }: RadarProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const baseRef = useRef<SVGGElement | null>(null);
-  const [view, setView] = useState({ k: 1, x: 0, y: 0 });
+  const sweepRef = useRef<SVGGElement | null>(null);
+  const [view, setView] = useState<ViewState>(readStoredView);
   const viewRef = useRef(view);
   viewRef.current = view;
+
+  // persist zoom/pan for the session (throttled to idle frames)
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      try {
+        window.sessionStorage.setItem(VIEW_KEY, JSON.stringify(view));
+      } catch {
+        /* ignore */
+      }
+    }, 250);
+    return () => window.clearTimeout(id);
+  }, [view]);
+
+  // rAF-driven sweep: mutates the DOM directly so it never re-renders React
+  useEffect(() => {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    let frame = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const deg = (((now - start) / 6000) * 360) % 360;
+      sweepRef.current?.setAttribute("transform", `rotate(${deg} ${TOWER.x} ${TOWER.y})`);
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   const clamp = useCallback((k: number, x: number, y: number) => {
     const kk = Math.min(6, Math.max(1, k));
@@ -111,10 +140,7 @@ export function AirfieldRadar({
 
   const zoomCenter = useCallback(
     (factor: number) => {
-      const v = viewRef.current;
-      const cx = (WORLD.w / 2 - v.x) / v.k;
-      const cy = (WORLD.h / 2 - v.y) / v.k;
-      zoomAt(v.k * factor, cx * v.k + v.x, cy * v.k + v.y);
+      zoomAt(viewRef.current.k * factor, WORLD.w / 2, WORLD.h / 2);
     },
     [zoomAt],
   );
@@ -232,9 +258,10 @@ export function AirfieldRadar({
         const dirX = f.movement === "arrival" ? g.x2 - g.x1 : g.x1 - g.x2;
         const dirY = f.movement === "arrival" ? g.y2 - g.y1 : g.y1 - g.y2;
         const heading = (Math.atan2(dirX, -dirY) * 180) / Math.PI;
-        const nx = -dirY / (Math.hypot(dirX, dirY) || 1);
-        const ny = dirX / (Math.hypot(dirX, dirY) || 1);
-        const off = f.status === "Taxiing" || f.status === "At gate" ? 34 : 0;
+        const len = Math.hypot(dirX, dirY) || 1;
+        const nx = -dirY / len;
+        const ny = dirX / len;
+        const off = f.status === "Taxiing" || f.status === "At gate" ? 26 : 0;
         return {
           f,
           x: lerp(g.x1, g.x2, t) + nx * off,
@@ -245,20 +272,67 @@ export function AirfieldRadar({
     [],
   );
 
+  const visiblePlanes = useMemo(() => {
+    const on = Object.values(filters).some(Boolean);
+    if (!on) return [];
+    return planes.filter(({ f }) => {
+      const st = runwayStatus.get(f.runway) ?? "active";
+      if (filters.onTime && f.delayMin === 0) return true;
+      if (filters.delayed && f.delayMin > 0) return true;
+      if (filters.closedAffected && st === "closed") return true;
+      if (filters.notam && st === "notam") return true;
+      return false;
+    });
+  }, [planes, filters, runwayStatus]);
+
+  // live region announcements for status / selection changes
+  const [announcement, setAnnouncement] = useState("");
+  const statusKey = RUNWAYS.map((r) => `${r.id}:${runwayStatus.get(r.id) ?? "active"}`).join(",");
+  useEffect(() => {
+    const closed = RUNWAYS.filter((r) => (runwayStatus.get(r.id) ?? "active") === "closed").map((r) => r.id);
+    const notam = RUNWAYS.filter((r) => (runwayStatus.get(r.id) ?? "active") === "notam").map((r) => r.id);
+    setAnnouncement(
+      `Runway status updated. ${closed.length ? `Closed: ${closed.join(", ")}. ` : "No closed runways. "}${
+        notam.length ? `NOTAM restricted: ${notam.join(", ")}.` : "No NOTAM restrictions."
+      }`,
+    );
+  }, [statusKey, runwayStatus]);
+
+  useEffect(() => {
+    if (focused) {
+      setAnnouncement(
+        `${focused.callsign} focused. ${focused.movement === "arrival" ? `Arriving from ${focused.origin}` : `Departing to ${focused.destination}`}, runway ${focused.runway}, stand ${focused.stand}, ${focused.status}.`,
+      );
+    }
+  }, [focused]);
+
+  useEffect(() => {
+    setAnnouncement(
+      `${visiblePlanes.length} of ${planes.length} aircraft shown for the current map filters.`,
+    );
+  }, [visiblePlanes.length, planes.length]);
+
   return (
     <div className="relative">
+      <p aria-live="polite" role="status" className="sr-only">
+        {announcement}
+      </p>
+
       <svg
         ref={svgRef}
         viewBox={`0 0 ${WORLD.w} ${WORLD.h}`}
-        className="h-[62dvh] w-full touch-none select-none lg:h-[70dvh]"
-        style={{ background: "radial-gradient(120% 90% at 50% 45%, color-mix(in oklab, var(--color-cyan) 7%, transparent), transparent 70%)" }}
+        preserveAspectRatio="xMidYMid meet"
+        className="h-[52dvh] w-full touch-none select-none lg:h-[68dvh]"
+        style={{
+          background:
+            "radial-gradient(120% 90% at 50% 45%, color-mix(in oklab, var(--color-cyan) 7%, transparent), transparent 70%)",
+        }}
         role="group"
-        aria-label="DFW ground surveillance display — seven runways, five terminal horseshoes and 12 active aircraft. Drag to pan, pinch or scroll to zoom. Use Tab to move between runways, terminals and aircraft, then Enter or Space to focus."
+        aria-label="DFW ground surveillance display, north up, drawn to surveyed runway geometry. Contains seven runways, five terminal horseshoes and active aircraft. Drag to pan, pinch or scroll to zoom. Tab moves through runways, then terminals, then aircraft; Enter or Space selects."
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endPointer}
         onPointerCancel={endPointer}
-        onPointerLeave={endPointer}
       >
         <defs>
           <pattern id="closed-hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -273,46 +347,9 @@ export function AirfieldRadar({
         <g ref={baseRef} />
 
         <g transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
-          {/* range rings centered on the tower */}
-          {[180, 360, 540, 720].map((r) => (
-            <circle
-              key={r}
-              cx={TOWER.x}
-              cy={TOWER.y}
-              r={r}
-              className="fill-none stroke-cyan"
-              strokeWidth={1 / view.k}
-              opacity="0.14"
-            />
-          ))}
-          <line x1={TOWER.x} y1={0} x2={TOWER.x} y2={WORLD.h} className="stroke-cyan" strokeWidth={1 / view.k} opacity="0.08" />
-          <line x1={0} y1={TOWER.y} x2={WORLD.w} y2={TOWER.y} className="stroke-cyan" strokeWidth={1 / view.k} opacity="0.08" />
+          <RadarBackdrop k={view.k} sweepRef={sweepRef} />
 
-          {/* periodic sweep */}
-          <g style={{ transformOrigin: `${TOWER.x}px ${TOWER.y}px`, animation: "radar-sweep 6s linear infinite" }}>
-            <path
-              d={`M ${TOWER.x},${TOWER.y} L ${TOWER.x + 760},${TOWER.y - 300} A 820,820 0 0 1 ${TOWER.x + 760},${TOWER.y + 300} Z`}
-              fill="url(#sweep-grad)"
-              pointerEvents="none"
-            />
-          </g>
-
-          {/* taxiways */}
-          {TAXIWAYS.map((t, i) => (
-            <line
-              key={i}
-              x1={t.x1}
-              y1={t.y1}
-              x2={t.x2}
-              y2={t.y2}
-              style={{ stroke: "color-mix(in oklab, var(--color-foreground) 12%, var(--color-background))" }}
-              strokeWidth="9"
-              strokeLinecap="round"
-              opacity="0.9"
-            />
-          ))}
-
-          {/* runways */}
+          {/* runways — true surveyed positions and widths */}
           {RUNWAYS.map((r) => {
             const g = RUNWAY_GEOM[r.id]!;
             const status = runwayStatus.get(r.id) ?? "active";
@@ -321,25 +358,28 @@ export function AirfieldRadar({
             return (
               <g
                 key={r.id}
-                role="img"
+                role="button"
+                tabIndex={0}
                 aria-label={`Runway ${r.id}, ${r.length}, ${
                   status === "active"
                     ? `active for ${r.flow} flow, ${WIND.approach}`
                     : status === "notam"
-                      ? "restricted by NOTAM"
-                      : "closed, crosshatched"
+                      ? "restricted by NOTAM, amber outline"
+                      : "closed, red crosshatch"
                 }`}
+                className="outline-none focus-visible:[&_.rwy]:stroke-cyan"
               >
                 <line
+                  className="rwy"
                   x1={g.x1}
                   y1={g.y1}
                   x2={g.x2}
                   y2={g.y2}
                   style={{ stroke: "color-mix(in oklab, var(--color-foreground) 17%, var(--color-background))" }}
-                  strokeWidth="26"
+                  strokeWidth={g.width}
                 />
                 {status === "closed" && (
-                  <line x1={g.x1} y1={g.y1} x2={g.x2} y2={g.y2} stroke="url(#closed-hatch)" strokeWidth="26" />
+                  <line x1={g.x1} y1={g.y1} x2={g.x2} y2={g.y2} stroke="url(#closed-hatch)" strokeWidth={g.width} />
                 )}
                 {status === "notam" && (
                   <line
@@ -348,7 +388,7 @@ export function AirfieldRadar({
                     x2={g.x2}
                     y2={g.y2}
                     className="stroke-amber"
-                    strokeWidth="30"
+                    strokeWidth={g.width + 4}
                     fill="none"
                     strokeDasharray="60 46"
                     opacity="0.22"
@@ -371,19 +411,18 @@ export function AirfieldRadar({
                     <animate attributeName="stroke-dashoffset" from="38" to="0" dur="1.8s" repeatCount="indefinite" />
                   )}
                 </line>
-                {/* approach cone at the active threshold */}
                 {status === "active" && (
                   <polygon
-                    points={`${g.x1},${g.y1} ${g.x1 - 26},${g.y1 - 56} ${g.x1 + 26},${g.y1 - 56}`}
+                    points={`${g.x1},${g.y1} ${g.x1 - 20},${g.y1 - 46} ${g.x1 + 20},${g.y1 - 46}`}
                     className="fill-cyan/20"
                     transform={`rotate(${ang - 90} ${g.x1} ${g.y1})`}
                   />
                 )}
                 <text
                   x={g.x1}
-                  y={g.y1 - 14}
+                  y={g.y1 - 12}
                   textAnchor="middle"
-                  className={cn("fill-muted-foreground text-[16px]", status === "closed" && "fill-coral")}
+                  className={cn("fill-muted-foreground text-[15px]", status === "closed" && "fill-coral")}
                   style={{ fontFamily: "var(--font-mono)" }}
                   transform={`rotate(${ang - 90} ${g.x1} ${g.y1})`}
                 >
@@ -391,9 +430,9 @@ export function AirfieldRadar({
                 </text>
                 <text
                   x={g.x2}
-                  y={g.y2 + 24}
+                  y={g.y2 + 22}
                   textAnchor="middle"
-                  className={cn("fill-muted-foreground text-[16px]", status === "closed" && "fill-coral")}
+                  className={cn("fill-muted-foreground text-[15px]", status === "closed" && "fill-coral")}
                   style={{ fontFamily: "var(--font-mono)" }}
                   transform={`rotate(${ang - 90} ${g.x2} ${g.y2})`}
                 >
@@ -406,12 +445,40 @@ export function AirfieldRadar({
           {/* construction zones */}
           {layer === "work" && (
             <>
-              <rect x="430" y="660" width="150" height="22" rx="6" className="fill-coral/25 stroke-coral" strokeDasharray="6 4" />
-              <text x="505" y="648" textAnchor="middle" className="fill-coral text-[15px]" style={{ fontFamily: "var(--font-mono)" }}>
+              <rect
+                x={TOWER.x - 70}
+                y={TOWER.y + 60}
+                width="140"
+                height="18"
+                rx="6"
+                className="fill-coral/25 stroke-coral"
+                strokeDasharray="6 4"
+              />
+              <text
+                x={TOWER.x}
+                y={TOWER.y + 52}
+                textAnchor="middle"
+                className="fill-coral text-[14px]"
+                style={{ fontFamily: "var(--font-mono)" }}
+              >
                 TWY B CLOSED
               </text>
-              <rect x="300" y="1108" width="130" height="20" rx="6" className="fill-amber/25 stroke-amber" strokeDasharray="6 4" />
-              <text x="365" y="1098" textAnchor="middle" className="fill-amber text-[15px]" style={{ fontFamily: "var(--font-mono)" }}>
+              <rect
+                x={PIERS.find((p) => p.t === "E")!.x - 60}
+                y={PIERS.find((p) => p.t === "E")!.y + 70}
+                width="120"
+                height="16"
+                rx="6"
+                className="fill-amber/25 stroke-amber"
+                strokeDasharray="6 4"
+              />
+              <text
+                x={PIERS.find((p) => p.t === "E")!.x}
+                y={PIERS.find((p) => p.t === "E")!.y + 64}
+                textAnchor="middle"
+                className="fill-amber text-[14px]"
+                style={{ fontFamily: "var(--font-mono)" }}
+              >
                 E APRON POUR
               </text>
             </>
@@ -419,9 +486,9 @@ export function AirfieldRadar({
 
           {/* tower */}
           <g pointerEvents="none">
-            <circle cx={TOWER.x} cy={TOWER.y} r="7" className="fill-amber" />
-            <circle cx={TOWER.x} cy={TOWER.y} r="16" className="fill-none stroke-amber" strokeWidth="1.5" opacity="0.5" />
-            <text x={TOWER.x + 22} y={TOWER.y + 5} className="fill-amber text-[15px]" style={{ fontFamily: "var(--font-mono)" }}>
+            <circle cx={TOWER.x} cy={TOWER.y} r="6" className="fill-amber" />
+            <circle cx={TOWER.x} cy={TOWER.y} r="14" className="fill-none stroke-amber" strokeWidth="1.5" opacity="0.5" />
+            <text x={TOWER.x + 20} y={TOWER.y + 5} className="fill-amber text-[14px]" style={{ fontFamily: "var(--font-mono)" }}>
               TWR
             </text>
           </g>
@@ -431,8 +498,9 @@ export function AirfieldRadar({
             const health = TERMINAL_HEALTH.find((t) => t.terminal === p.t)!;
             const selected = terminal === p.t;
             const dim = (terminal && !selected) || (focus && focused?.terminal !== p.t);
-            const d = horseshoePath(p.cx, p.cy, p.open, 78);
-            const labelX = p.open === "east" ? p.cx - 46 : p.cx + 46;
+            const r = 52;
+            const d = horseshoePath(p.x, p.y, p.open, r);
+            const labelX = p.open === "east" ? p.x - 32 : p.x + 32;
             const select = () => onSelectTerminal(selected ? "" : p.t);
             return (
               <g
@@ -451,34 +519,33 @@ export function AirfieldRadar({
                   }
                 }}
               >
-                <path d={d} className="fill-none stroke-transparent" strokeWidth="72" pointerEvents="stroke" />
+                <path d={d} className="fill-none stroke-transparent" strokeWidth="52" pointerEvents="stroke" />
                 <path
                   d={d}
                   className={cn("hs fill-none", selected && "stroke-amber")}
                   style={selected ? undefined : { stroke: "color-mix(in oklab, var(--color-foreground) 24%, var(--color-background))" }}
-                  strokeWidth="30"
+                  strokeWidth="22"
                   strokeLinecap="round"
                 />
                 <text
                   x={labelX}
-                  y={p.cy + 8}
+                  y={p.y + 7}
                   textAnchor="middle"
-                  className={cn("text-[26px] font-bold", selected ? "fill-amber" : "fill-foreground")}
+                  className={cn("text-[22px] font-bold", selected ? "fill-amber" : "fill-foreground")}
                 >
                   {p.t}
                 </text>
                 {layer === "gates" &&
                   Array.from({ length: 8 }).map((_, i) => {
                     const ang = (-70 + i * 20) * (Math.PI / 180);
-                    const rr = 78;
-                    const gx = p.cx + (p.open === "east" ? -1 : 1) * rr * Math.cos(ang);
-                    const gy = p.cy + rr * Math.sin(ang);
+                    const gx = p.x + (p.open === "east" ? -1 : 1) * r * Math.cos(ang);
+                    const gy = p.y + r * Math.sin(ang);
                     return (
                       <circle
                         key={i}
                         cx={gx}
                         cy={gy}
-                        r="6"
+                        r="4.5"
                         className={
                           i < Math.round((health.standsAvailable / health.standsTotal) * 8)
                             ? "fill-success"
@@ -491,15 +558,15 @@ export function AirfieldRadar({
                   <>
                     <circle
                       cx={labelX}
-                      cy={p.cy + 44}
-                      r="18"
+                      cy={p.y + 34}
+                      r="14"
                       className={health.overdueActions ? "fill-coral/25" : "fill-cyan/20"}
                     />
                     <text
                       x={labelX}
-                      y={p.cy + 50}
+                      y={p.y + 39}
                       textAnchor="middle"
-                      className={cn("text-[16px]", health.overdueActions ? "fill-coral" : "fill-cyan")}
+                      className={cn("text-[14px]", health.overdueActions ? "fill-coral" : "fill-cyan")}
                       style={{ fontFamily: "var(--font-mono)" }}
                     >
                       {health.openActions}
@@ -507,18 +574,17 @@ export function AirfieldRadar({
                   </>
                 )}
                 {alertsByTerminal.get(p.t) ? (
-                  <circle cx={labelX} cy={p.cy - 52} r="8" className="fill-coral" />
+                  <circle cx={labelX} cy={p.y - 38} r="6" className="fill-coral" />
                 ) : null}
               </g>
             );
           })}
 
           {/* aircraft targets */}
-          {planes.map(({ f, x, y, heading }) => {
+          {visiblePlanes.map(({ f, x, y, heading }) => {
             const isFocused = focused?.callsign === f.callsign;
             const dim = (focus && !isFocused) || (terminal && f.terminal !== terminal);
-            const tone =
-              f.delayMin > 15 ? "text-coral" : f.delayMin > 0 ? "text-amber" : "text-cyan";
+            const tone = f.delayMin > 15 ? "text-coral" : f.delayMin > 0 ? "text-amber" : "text-cyan";
             const select = () => onFocusFlight(f);
             return (
               <g
@@ -537,33 +603,17 @@ export function AirfieldRadar({
                   }
                 }}
               >
-                <circle className="hit fill-transparent stroke-transparent" cx={x} cy={y} r="30" strokeWidth="3" pointerEvents="all" />
-                {/* fading motion trail */}
+                <circle className="hit fill-transparent stroke-transparent" cx={x} cy={y} r="26" strokeWidth="3" pointerEvents="all" />
                 <g transform={`rotate(${heading} ${x} ${y})`}>
-                  <line x1={x} y1={y + 12} x2={x} y2={y + 40} stroke="currentColor" strokeWidth="4" strokeLinecap="round" opacity="0.35" />
-                  <line x1={x} y1={y + 40} x2={x} y2={y + 66} stroke="currentColor" strokeWidth="3" strokeLinecap="round" opacity="0.14" />
-                  <path
-                    d={`M ${x},${y - 13} L ${x + 11},${y + 12} L ${x},${y + 5} L ${x - 11},${y + 12} Z`}
-                    fill="currentColor"
-                  />
-                  {isFocused && (
-                    <circle cx={x} cy={y} r="26" className="fill-none stroke-cyan" strokeWidth="2.5" />
-                  )}
+                  <line x1={x} y1={y + 10} x2={x} y2={y + 32} stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" opacity="0.35" />
+                  <line x1={x} y1={y + 32} x2={x} y2={y + 54} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.14" />
+                  <path d={`M ${x},${y - 11} L ${x + 9},${y + 10} L ${x},${y + 4} L ${x - 9},${y + 10} Z`} fill="currentColor" />
+                  {isFocused && <circle cx={x} cy={y} r="22" className="fill-none stroke-cyan" strokeWidth="2.5" />}
                 </g>
-                <text
-                  x={x + 20}
-                  y={y - 4}
-                  className="fill-current text-[15px]"
-                  style={{ fontFamily: "var(--font-mono)" }}
-                >
+                <text x={x + 16} y={y - 3} className="fill-current text-[14px]" style={{ fontFamily: "var(--font-mono)" }}>
                   {f.callsign}
                 </text>
-                <text
-                  x={x + 20}
-                  y={y + 13}
-                  className="fill-muted-foreground text-[13px]"
-                  style={{ fontFamily: "var(--font-mono)" }}
-                >
+                <text x={x + 16} y={y + 12} className="fill-muted-foreground text-[12px]" style={{ fontFamily: "var(--font-mono)" }}>
                   {f.status === "At gate" || f.status === "Taxiing" ? f.stand : f.runway.split("/")[0]}
                 </text>
               </g>
@@ -594,7 +644,7 @@ export function AirfieldRadar({
           type="button"
           onClick={() => {
             stopMomentum();
-            setView({ k: 1, x: 0, y: 0 });
+            setView(DEFAULT_VIEW);
           }}
           aria-label="Recenter airfield"
           className="press grid size-11 place-items-center rounded-xl border border-amber/40 bg-amber/12 text-amber backdrop-blur-md"
@@ -609,3 +659,44 @@ export function AirfieldRadar({
     </div>
   );
 }
+
+/** Static chrome (rings, crosshair, sweep, taxiways) — memoized so pans don't rebuild it. */
+const RadarBackdrop = memo(function RadarBackdrop({
+  k,
+  sweepRef,
+}: {
+  k: number;
+  sweepRef: React.RefObject<SVGGElement | null>;
+}) {
+  const rings = useMemo(() => [140, 280, 420, 560], []);
+  return (
+    <g pointerEvents="none">
+      {rings.map((r) => (
+        <circle key={r} cx={TOWER.x} cy={TOWER.y} r={r} className="fill-none stroke-cyan" strokeWidth={1 / k} opacity="0.14" />
+      ))}
+      <line x1={TOWER.x} y1={0} x2={TOWER.x} y2={WORLD.h} className="stroke-cyan" strokeWidth={1 / k} opacity="0.08" />
+      <line x1={0} y1={TOWER.y} x2={WORLD.w} y2={TOWER.y} className="stroke-cyan" strokeWidth={1 / k} opacity="0.08" />
+
+      <g ref={sweepRef}>
+        <path
+          d={`M ${TOWER.x},${TOWER.y} L ${TOWER.x + 620},${TOWER.y - 240} A 670,670 0 0 1 ${TOWER.x + 620},${TOWER.y + 240} Z`}
+          fill="url(#sweep-grad)"
+        />
+      </g>
+
+      {TAXIWAYS.map((t, i) => (
+        <line
+          key={i}
+          x1={t.x1}
+          y1={t.y1}
+          x2={t.x2}
+          y2={t.y2}
+          style={{ stroke: "color-mix(in oklab, var(--color-foreground) 12%, var(--color-background))" }}
+          strokeWidth="7"
+          strokeLinecap="round"
+          opacity="0.9"
+        />
+      ))}
+    </g>
+  );
+});
