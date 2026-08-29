@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Activity, ArrowRight, Gauge, Pause, Play, Check } from "lucide-react";
+import { Activity, ArrowRight, Gauge, Pause, Play, Check, Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOps } from "@/lib/ops-store";
 import { useEventLink } from "@/components/notification-center";
@@ -21,7 +21,8 @@ export const Route = createFileRoute("/timeline")({
       { property: "og:title", content: "Live operations timeline — DFW Airfield Command" },
       {
         property: "og:description",
-        content: "A streaming DFW event feed that flags everything changed since you last viewed it.",
+        content:
+          "A streaming DFW event feed that flags everything changed since you last viewed it.",
       },
     ],
   }),
@@ -29,8 +30,16 @@ export const Route = createFileRoute("/timeline")({
 });
 
 function TimelinePage() {
-  const { events, unseenEventIds, markEventsSeen, streaming, setStreaming, speed, setSpeed, clock } =
-    useOps();
+  const {
+    events,
+    unseenEventIds,
+    markEventsSeen,
+    streaming,
+    setStreaming,
+    speed,
+    setSpeed,
+    clock,
+  } = useOps();
   const [kind, setKind] = useState<EventKind | "all">("all");
   // Freeze the "since last view" set on entry so the ribbon stays stable while reading.
   const [sinceIds, setSinceIds] = useState<string[]>([]);
@@ -77,14 +86,21 @@ function TimelinePage() {
           aria-pressed={!streaming}
           className="press inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-border px-4 text-xs font-medium"
         >
-          {streaming ? <Pause aria-hidden className="size-4" /> : <Play aria-hidden className="size-4" />}
+          {streaming ? (
+            <Pause aria-hidden className="size-4" />
+          ) : (
+            <Play aria-hidden className="size-4" />
+          )}
           {streaming ? "Pause feed" : "Resume feed"}
         </button>
       </header>
 
       <div className="flex flex-wrap items-center gap-2 surface-card p-4">
         <Gauge aria-hidden className="size-4 shrink-0 text-muted-foreground" />
-        <span id="sim-speed-label" className="text-[12px] uppercase tracking-wide text-muted-foreground">
+        <span
+          id="sim-speed-label"
+          className="text-[12px] uppercase tracking-wide text-muted-foreground"
+        >
           Simulation speed
         </span>
         <div role="group" aria-labelledby="sim-speed-label" className="ml-auto flex gap-1.5">
@@ -107,12 +123,13 @@ function TimelinePage() {
         </div>
       </div>
 
-
       <div
         role="status"
         className={cn(
           "flex items-center gap-2 rounded-xl border px-3 py-2 text-xs",
-          newIds.length ? "border-cyan/50 bg-cyan/10 text-cyan" : "border-border bg-card text-muted-foreground",
+          newIds.length
+            ? "border-cyan/50 bg-cyan/10 text-cyan"
+            : "border-border bg-card text-muted-foreground",
         )}
       >
         <Activity aria-hidden className="size-4 shrink-0" />
@@ -135,7 +152,11 @@ function TimelinePage() {
         )}
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter timeline by event type">
+      <div
+        className="flex gap-2 overflow-x-auto pb-1"
+        role="group"
+        aria-label="Filter timeline by event type"
+      >
         {KINDS.map((k) => (
           <button
             key={k}
@@ -160,8 +181,14 @@ function TimelinePage() {
           <TimelineRow key={e.id} eventId={e.id} isNew={newIds.includes(e.id)} />
         ))}
         {!list.length && (
-          <li className="surface-card p-0 p-6 text-center text-sm text-muted-foreground">
-            No {kind === "all" ? "" : EVENT_KIND_LABEL[kind].toLowerCase()} events on this shift yet.
+          <li className="empty-state surface-card">
+            <span className="empty-state__icon">
+              <Radio aria-hidden className="size-5" />
+            </span>
+            <span>
+              No {kind === "all" ? "" : EVENT_KIND_LABEL[kind].toLowerCase()} events on this shift
+              yet.
+            </span>
           </li>
         )}
       </ol>
@@ -230,7 +257,9 @@ function TimelineRow({ eventId, isNew }: { eventId: string; isNew: boolean }) {
                 )}
               >
                 <span className="uppercase tracking-wide text-foreground">{d.field}</span>
-                <span aria-hidden className="text-foreground line-through">{d.from}</span>
+                <span aria-hidden className="text-foreground line-through">
+                  {d.from}
+                </span>
                 <ArrowRight aria-hidden className="size-2.5" />
                 <span className="font-semibold">{d.to}</span>
               </span>

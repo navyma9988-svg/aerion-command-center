@@ -1,13 +1,30 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Radar, ClipboardList, Map, TriangleAlert, FileText, Search, Settings2, Activity } from "lucide-react";
+import {
+  Radar,
+  ClipboardList,
+  Map,
+  TriangleAlert,
+  FileText,
+  Search,
+  Settings2,
+  Activity,
+  RefreshCw,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOps } from "@/lib/ops-store";
 import { CommandSearch } from "@/components/command-search";
 import { NotificationCenter, NotificationToasts } from "@/components/notification-center";
 import { QuickActionsDock } from "@/components/quick-actions-dock";
 import { Toaster } from "@/components/ui/sonner";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { AIRPORT } from "@/lib/airfield-data";
@@ -24,7 +41,20 @@ const NAV = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [searchOpen, setSearchOpen] = useState(false);
-  const { alerts, unseenEventIds, simulation, setSimulation, theme, setTheme, density, setDensity, clock } = useOps();
+  const [pullDistance, setPullDistance] = useState(0);
+  const [pullRefreshing, setPullRefreshing] = useState(false);
+  const pullStart = useRef<number | null>(null);
+  const {
+    alerts,
+    unseenEventIds,
+    simulation,
+    setSimulation,
+    theme,
+    setTheme,
+    density,
+    setDensity,
+    clock,
+  } = useOps();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const openCount = alerts.filter((a) => a.state === "new").length;
@@ -35,7 +65,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       const typing =
-        target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+        target &&
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
       if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !typing)) {
         e.preventDefault();
         setSearchOpen(true);
@@ -44,6 +75,20 @@ export function AppShell({ children }: { children: ReactNode }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  const finishPull = () => {
+    pullStart.current = null;
+    if (pullDistance >= 54) {
+      setPullRefreshing(true);
+      setPullDistance(42);
+      window.setTimeout(() => {
+        setPullRefreshing(false);
+        setPullDistance(0);
+      }, 720);
+      return;
+    }
+    setPullDistance(0);
+  };
 
   return (
     <div className={cn("min-h-dvh bg-background", density === "compact" && "text-[0.94rem]")}>
@@ -75,7 +120,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                 DFW Airfield Command
               </p>
               <p className="truncate text-[12px] leading-tight text-muted-foreground">
-                {AIRPORT.code ?? "DFW"} · <span className="mono-data">{clock}</span> {AIRPORT.timezone}
+                {AIRPORT.code ?? "DFW"} · <span className="mono-data">{clock}</span>{" "}
+                {AIRPORT.timezone}
               </p>
             </div>
           </div>
@@ -100,7 +146,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               <SheetContent side="bottom" className="rounded-t-2xl">
                 <SheetHeader>
                   <SheetTitle>Tweaks</SheetTitle>
-                  <SheetDescription>Demo visuals only — settings apply immediately.</SheetDescription>
+                  <SheetDescription>
+                    Demo visuals only — settings apply immediately.
+                  </SheetDescription>
                 </SheetHeader>
                 <div className="space-y-5 px-4 pb-8">
                   <div className="flex items-center justify-between gap-4">
@@ -135,11 +183,18 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
         <div className="closure-hairline" data-state={stripState} aria-hidden>
           <span className="closure-hairline__label">
-            {stripState === "alert" ? "P1 · degraded" : stripState === "busy" ? "Elevated ops" : "Airfield nominal"}
+            {stripState === "alert"
+              ? "P1 · degraded"
+              : stripState === "busy"
+                ? "Elevated ops"
+                : "Airfield nominal"}
           </span>
         </div>
         {simulation && (
-          <p role="status" className="bg-coral/12 px-4 py-1 text-center text-[12px] font-medium text-coral">
+          <p
+            role="status"
+            className="bg-coral/12 px-4 py-1 text-center text-[12px] font-medium text-coral"
+          >
             Simulation active — demo data
           </p>
         )}
@@ -150,7 +205,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         aria-label="Sections"
         className="fixed inset-y-0 left-0 z-40 hidden w-[4.5rem] flex-col items-center gap-1.5 border-r border-border bg-sidebar py-4 lg:flex"
       >
-        <span aria-hidden className="mb-4 grid size-9 place-items-center rounded-xl bg-amber/12 text-amber">
+        <span
+          aria-hidden
+          className="mb-4 grid size-9 place-items-center rounded-xl bg-amber/12 text-amber"
+        >
           <Radar className="size-4" />
         </span>
         {NAV.map(({ to, label, icon: Icon }) => (
@@ -181,7 +239,38 @@ export function AppShell({ children }: { children: ReactNode }) {
         ))}
       </nav>
 
-      <main id="main" className="mx-auto max-w-5xl px-4 pb-32 pt-24 lg:pb-12 lg:pl-[5.5rem] lg:pr-6">
+      <div
+        aria-live="polite"
+        className="pull-refresh-cue lg:hidden"
+        style={{
+          opacity: pullDistance > 4 ? 1 : 0,
+          transform: `translate3d(-50%, ${Math.min(50, pullDistance) - 34}px, 0)`,
+        }}
+      >
+        <RefreshCw
+          aria-hidden
+          className={cn("size-3.5", pullRefreshing && "animate-spin")}
+          style={{
+            transform: pullRefreshing ? undefined : `rotate(${Math.min(180, pullDistance * 3)}deg)`,
+          }}
+        />
+        {pullRefreshing ? "Feeds synced" : pullDistance >= 54 ? "Release to sync" : "Pull to sync"}
+      </div>
+
+      <main
+        id="main"
+        className="mx-auto max-w-5xl px-4 pb-32 pt-24 lg:pb-12 lg:pl-[5.5rem] lg:pr-6"
+        onTouchStart={(e) => {
+          if (window.scrollY <= 0) pullStart.current = e.touches[0]?.clientY ?? null;
+        }}
+        onTouchMove={(e) => {
+          if (pullStart.current == null || window.scrollY > 0 || pullRefreshing) return;
+          const delta = (e.touches[0]?.clientY ?? pullStart.current) - pullStart.current;
+          setPullDistance(Math.max(0, Math.min(76, delta * 0.55)));
+        }}
+        onTouchEnd={finishPull}
+        onTouchCancel={finishPull}
+      >
         <div key={pathname} className="route-stage">
           {children}
         </div>
@@ -198,7 +287,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link
                 to={to}
                 activeOptions={{ exact: to === "/" }}
-                activeProps={{ "aria-current": "page", className: "dock-active text-amber bg-amber/12" }}
+                activeProps={{
+                  "aria-current": "page",
+                  className: "dock-active text-amber bg-amber/12",
+                }}
                 inactiveProps={{ className: "text-muted-foreground" }}
                 className="press relative flex min-h-[46px] flex-col items-center justify-center gap-0.5 rounded-2xl px-0.5 py-1.5 text-[10px] font-medium"
               >

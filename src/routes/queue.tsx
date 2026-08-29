@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useOps } from "@/lib/ops-store";
 import { type ActionStatus } from "@/lib/airfield-data";
 import { cn } from "@/lib/utils";
-import { Search, Check, ArrowUpRight } from "lucide-react";
+import { Search, SearchX, Check, ArrowUpRight } from "lucide-react";
 import {
   Drawer,
   DrawerContent,
@@ -38,7 +38,10 @@ export const Route = createFileRoute("/queue")({
           "Worst-first action queue for the DFW airfield program: overdue, due today, blocked and closing items with one tap to act.",
       },
       { property: "og:title", content: "Queue — DFW Airfield Command" },
-      { property: "og:description", content: "Worst-first airfield action queue with one tap to act." },
+      {
+        property: "og:description",
+        content: "Worst-first airfield action queue with one tap to act.",
+      },
     ],
   }),
   component: QueuePage,
@@ -85,7 +88,10 @@ function QueuePage() {
       </header>
 
       <div className="relative">
-        <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Search
+          aria-hidden
+          className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+        />
         <input
           type="search"
           value={q}
@@ -132,7 +138,8 @@ function QueuePage() {
                     a.status === "due_today" && "bg-amber/20 text-amber",
                     a.status === "closing" && "bg-amber/12 text-amber",
                     a.status === "complete" && "bg-success/20 text-success",
-                    (a.status === "open" || a.status === "blocked") && "bg-secondary text-muted-foreground",
+                    (a.status === "open" || a.status === "blocked") &&
+                      "bg-secondary text-muted-foreground",
                   )}
                 >
                   {STATUS_LABEL[a.status]}
@@ -149,8 +156,11 @@ function QueuePage() {
           </li>
         ))}
         {list.length === 0 && (
-          <li className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-            No actions match this filter.
+          <li className="empty-state">
+            <span className="empty-state__icon">
+              <SearchX aria-hidden className="size-5" />
+            </span>
+            <span>No actions match this filter.</span>
           </li>
         )}
       </ul>
@@ -214,7 +224,18 @@ function QueuePage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => navigate({ to: "/alerts", search: { item: "", status: "open", severity: "", terminal: "", runway: "" } })}
+                    onClick={() =>
+                      navigate({
+                        to: "/alerts",
+                        search: {
+                          item: "",
+                          status: "open",
+                          severity: "",
+                          terminal: "",
+                          runway: "",
+                        },
+                      })
+                    }
                     className="press inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border px-4 text-sm font-medium"
                   >
                     Linked alerts <ArrowUpRight aria-hidden className="size-4" />

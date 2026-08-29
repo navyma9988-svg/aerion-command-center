@@ -29,6 +29,7 @@ import {
   FileDown,
   FileJson,
   Lock,
+  RadioTower,
   Send,
   ShieldAlert,
   Sliders,
@@ -137,7 +138,9 @@ function AlertsPage() {
           aria-pressed={mineOnly}
           className={cn(
             "press min-h-11 shrink-0 rounded-full border px-4 text-sm font-medium",
-            mineOnly ? "border-amber bg-amber/12 text-amber" : "border-border bg-card text-muted-foreground",
+            mineOnly
+              ? "border-amber bg-amber/12 text-amber"
+              : "border-border bg-card text-muted-foreground",
           )}
         >
           Mine
@@ -219,12 +222,19 @@ function AlertsPage() {
       <ul className="space-y-2">
         {filtered.map((a) => (
           <li key={a.id}>
-            <AlertCard alert={a} onOpen={() => setSearch({ item: a.id })} onAck={() => acknowledge(a.id)} />
+            <AlertCard
+              alert={a}
+              onOpen={() => setSearch({ item: a.id })}
+              onAck={() => acknowledge(a.id)}
+            />
           </li>
         ))}
         {filtered.length === 0 && (
-          <li className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-            Nothing open under these filters. Last item cleared 05:41 CT.
+          <li className="empty-state">
+            <span className="empty-state__icon">
+              <RadioTower aria-hidden className="size-5" />
+            </span>
+            <span>Nothing open under these filters · cleared 05:41 CT</span>
           </li>
         )}
       </ul>
@@ -289,7 +299,11 @@ function AlertCard({
 }) {
   return (
     <div className="surface-card p-0">
-      <button type="button" onClick={onOpen} className="press w-full p-3 text-left hover:bg-elevated">
+      <button
+        type="button"
+        onClick={onOpen}
+        className="press w-full p-3 text-left hover:bg-elevated"
+      >
         <div className="flex flex-wrap items-center gap-2">
           <span
             className={cn(
@@ -311,15 +325,20 @@ function AlertCard({
         </div>
         <p className="mt-1.5 text-sm font-medium">{alert.title}</p>
         <p className="mt-1 text-[12px] text-muted-foreground">
-          {[alert.runway, alert.taxiway && `Taxiway ${alert.taxiway}`, alert.stand, alert.terminal && `Terminal ${alert.terminal}`]
+          {[
+            alert.runway,
+            alert.taxiway && `Taxiway ${alert.taxiway}`,
+            alert.stand,
+            alert.terminal && `Terminal ${alert.terminal}`,
+          ]
             .filter(Boolean)
             .join(" · ") || "Airside"}{" "}
           · {alert.impact}
         </p>
         {alert.escalationReason && (
           <p className="mt-1 flex items-center gap-1 text-[12px] text-amber">
-            <TrendingUp aria-hidden className="size-3" /> Auto-ranked {alert.severity.toUpperCase()} ·{" "}
-            {alert.escalationReason}
+            <TrendingUp aria-hidden className="size-3" /> Auto-ranked {alert.severity.toUpperCase()}{" "}
+            · {alert.escalationReason}
           </p>
         )}
         {alert.state === "new" && alert.escalatesInMin && (
@@ -362,7 +381,10 @@ function TriageSheet({
   onClose: () => void;
   onStep: (dir: 1 | -1) => void;
   onAck: (id: string) => void;
-  onTriage: (id: string, patch: { severity: Severity; owner: string; impact: string; note?: string }) => void;
+  onTriage: (
+    id: string,
+    patch: { severity: Severity; owner: string; impact: string; note?: string },
+  ) => void;
   onResolve: (id: string, note: string) => void;
   onNote: (id: string, text: string) => void;
   trail: AuditEntry[];
@@ -453,7 +475,11 @@ function TriageSheet({
               </div>
               <div>
                 <dt className="text-muted-foreground">Asset</dt>
-                <dd>{alert.runway ?? alert.stand ?? (alert.taxiway ? `Taxiway ${alert.taxiway}` : alert.terminal ?? "Airside")}</dd>
+                <dd>
+                  {alert.runway ??
+                    alert.stand ??
+                    (alert.taxiway ? `Taxiway ${alert.taxiway}` : (alert.terminal ?? "Airside"))}
+                </dd>
               </div>
               <div>
                 <dt className="text-muted-foreground">Linked action</dt>
@@ -553,7 +579,9 @@ function TriageSheet({
 
             {alert.state === "resolved" && (
               <section className="space-y-2 rounded-xl border border-success/40 p-3">
-                <h3 className="text-[17px] font-semibold tracking-tight text-success">Closure exports</h3>
+                <h3 className="text-[17px] font-semibold tracking-tight text-success">
+                  Closure exports
+                </h3>
                 <button
                   type="button"
                   onClick={() => printDisruptionSummary(alert, currentUser)}
@@ -602,7 +630,9 @@ function TriageSheet({
                   <button
                     key={r.handle}
                     type="button"
-                    onClick={() => setOperatorNote((v) => `${v}${v && !v.endsWith(" ") ? " " : ""}@${r.handle} `)}
+                    onClick={() =>
+                      setOperatorNote((v) => `${v}${v && !v.endsWith(" ") ? " " : ""}@${r.handle} `)
+                    }
                     className="press min-h-11 rounded-full border border-border px-3 text-[12px] text-muted-foreground"
                   >
                     @{r.handle}
@@ -766,7 +796,8 @@ function EscalationRulesPanel() {
             />
           </div>
           <p className="text-[12px] text-muted-foreground">
-            Matching items are re-ranked automatically — worst first, without touching the audit trail.
+            Matching items are re-ranked automatically — worst first, without touching the audit
+            trail.
           </p>
         </div>
       )}

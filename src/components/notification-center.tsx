@@ -34,7 +34,11 @@ export function useEventLink() {
     }
     void navigate({
       to: "/map",
-      search: { focus: e.callsign ?? "", terminal: e.callsign ? "" : (e.terminal ?? ""), layer: "gates" },
+      search: {
+        focus: e.callsign ?? "",
+        terminal: e.callsign ? "" : (e.terminal ?? ""),
+        layer: "gates",
+      },
     });
   };
 }
@@ -63,22 +67,24 @@ export function NotificationToasts() {
     return () => window.clearTimeout(t);
   }, [notifications, shown, quietActive]);
 
-
   if (!queue.length) return null;
 
   return (
     <div
       role="region"
       aria-label="New disruption notifications"
-      className="safe-bottom pointer-events-none fixed inset-x-0 bottom-24 z-40 mx-auto flex max-w-md flex-col gap-2 px-3 lg:inset-x-auto lg:bottom-auto lg:right-5 lg:top-20 lg:mx-0 lg:max-w-sm"
+      className="safe-bottom pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+9rem)] z-40 mx-auto flex max-w-md flex-col gap-2 px-3 lg:inset-x-auto lg:bottom-auto lg:right-5 lg:top-20 lg:mx-0 lg:max-w-sm"
     >
       {queue.map((n) => (
         <div
           key={n.id}
           role="status"
-          className="pointer-events-auto flex items-start gap-2 rounded-xl border border-border bg-elevated/95 p-3 shadow-[var(--shadow-card)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 lg:slide-in-from-top-2"
+          className="notification-banner pointer-events-auto flex items-start gap-2 rounded-[18px] border border-border bg-elevated/92 p-3 shadow-[var(--shadow-card)] backdrop-blur-2xl animate-in fade-in slide-in-from-bottom-2 lg:slide-in-from-top-2"
         >
-          <span aria-hidden className={cn("mt-1.5 size-2 shrink-0 rounded-full", severityDot(n.event))} />
+          <span
+            aria-hidden
+            className={cn("mt-1.5 size-2 shrink-0 rounded-full", severityDot(n.event))}
+          />
           <button
             type="button"
             onClick={() => {
@@ -138,7 +144,6 @@ export function NotificationCenter() {
     setNotifPrefs({ [key]: next } as never);
   };
 
-
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <button
@@ -181,7 +186,11 @@ export function NotificationCenter() {
             aria-pressed={!streaming}
             className="press inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border px-4 text-xs font-medium"
           >
-            {streaming ? <Bell aria-hidden className="size-4" /> : <BellOff aria-hidden className="size-4" />}
+            {streaming ? (
+              <Bell aria-hidden className="size-4" />
+            ) : (
+              <BellOff aria-hidden className="size-4" />
+            )}
             {streaming ? "Pause feed" : "Resume feed"}
           </button>
           <button
