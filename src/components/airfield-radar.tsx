@@ -89,7 +89,12 @@ export function AirfieldRadar({
   const svgRef = useRef<SVGSVGElement | null>(null);
   const baseRef = useRef<SVGGElement | null>(null);
   const sweepRef = useRef<SVGGElement | null>(null);
-  const [view, setView] = useState<ViewState>(readStoredView);
+  const [view, setView] = useState<ViewState>(DEFAULT_VIEW);
+
+  // restore remembered zoom/pan after mount (avoids SSR hydration mismatch)
+  useEffect(() => {
+    setView(readStoredView());
+  }, []);
   const viewRef = useRef(view);
   viewRef.current = view;
 
@@ -334,7 +339,7 @@ export function AirfieldRadar({
         ref={svgRef}
         viewBox={`0 0 ${WORLD.w} ${WORLD.h}`}
         preserveAspectRatio="xMidYMid meet"
-        className="h-auto max-h-[74dvh] w-full touch-none select-none"
+        className="h-[48dvh] w-full touch-none select-none sm:h-auto sm:max-h-[74dvh]"
         style={{
           aspectRatio: `${WORLD.w} / ${WORLD.h}`,
           background:
@@ -657,7 +662,7 @@ export function AirfieldRadar({
           type="button"
           onClick={() => {
             stopMomentum();
-            setView(DEFAULT_VIEW);
+            setView(initialView());
           }}
           aria-label="Recenter airfield"
           className="press grid size-11 place-items-center rounded-xl border border-amber/40 bg-amber/12 text-amber backdrop-blur-md"
