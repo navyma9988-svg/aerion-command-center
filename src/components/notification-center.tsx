@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Bell, BellOff, ArrowRight, X } from "lucide-react";
+import { Bell, BellOff, ArrowRight, SlidersHorizontal, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useOps, type OpsNotification } from "@/lib/ops-store";
-import { CHANGE_LABEL, EVENT_KIND_LABEL, type OpsEvent } from "@/lib/airfield-data";
+import { useOps, NOTIF_TERMINALS, type OpsNotification } from "@/lib/ops-store";
+import {
+  CHANGE_LABEL,
+  EVENT_KIND_LABEL,
+  SEVERITY_LABEL,
+  type OpsEvent,
+  type Severity,
+} from "@/lib/airfield-data";
 import {
   Sheet,
   SheetContent,
