@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useOps } from "@/lib/ops-store";
 import { FLIGHTS, RUNWAYS, TERMINAL_HEALTH, WIND, type Flight } from "@/lib/airfield-data";
-import { AirfieldRadar } from "@/components/airfield-radar";
+import { AirfieldRadar, ALL_FILTERS, type RadarFilters } from "@/components/airfield-radar";
 import { cn } from "@/lib/utils";
 import { Plane, Crosshair, List } from "lucide-react";
 import {
@@ -12,6 +12,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+
 
 type Layer = "gates" | "actions" | "work";
 
@@ -44,15 +45,67 @@ export const Route = createFileRoute("/map")({
   component: MapPage,
 });
 
+const FILTER_KEY = "dfw.radar.filters";
+const FOCUS_KEY = "dfw.radar.focus";
+
+const FILTER_META: { k: keyof RadarFilters; label: string }[] = [
+  { k: "onTime", label: "On time" },
+  { k: "delayed", label: "Delayed" },
+  { k: "closedAffected", label: "Closed rwy" },
+  { k: "notam", label: "NOTAM" },
+];
+
 function MapPage() {
   const { alerts, simulation } = useOps();
   const { focus, terminal, layer } = Route.useSearch();
   const navigate = useNavigate({ from: "/map" });
   const [listView, setListView] = useState(false);
+  const [filters, setFilters] = useState<RadarFilters>(() => {
+    if (typeof window === "undefined") return ALL_FILTERS;
+    try {
+      const raw = window.sessionStorage.getItem(FILTER_KEY);
+      return raw ? { ...ALL_FILTERS, ...(JSON.parse(raw) as Partial<RadarFilters>) } : ALL_FILTERS;
+    } catch {
+      return ALL_FILTERS;
+    }
+  });
 
   const focused = FLIGHTS.find((f) => f.callsign === focus) ?? null;
   const setSearch = (patch: Record<string, string>) =>
     navigate({ search: (p) => ({ ...p, ...patch }) });
+
+  // remember filter selection and the last focused aircraft across tab switches
+  useEffect(() => {
+    try {
+      window.sessionStorage.setItem(FILTER_KEY, JSON.stringify(filters));
+    } catch {
+      /* ignore */
+    }
+  }, [filters]);
+
+  useEffect(() => {
+    try {
+      if (focus) window.sessionStorage.setItem(FOCUS_KEY, focus);
+    } catch {
+      /* ignore */
+    }
+  }, [focus]);
+
+  useEffect(() => {
+    if (focus || terminal) return;
+    let last = "";
+    try {
+      last = window.sessionStorage.getItem(FOCUS_KEY) ?? "";
+    } catch {
+      /* ignore */
+    }
+    if (last && FLIGHTS.some((f) => f.callsign === last)) {
+      navigate({ search: (p) => ({ ...p, focus: last }), replace: true });
+    }
+    // run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   const runwayStatus = useMemo(() => {
     const m = new Map(RUNWAYS.map((r) => [r.id, r.status as string]));
@@ -121,6 +174,25 @@ function MapPage() {
         )}
       </div>
 
+      <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Traffic filters">
+        {FILTER_META.map((f) => (
+          <button
+            key={f.k}
+            type="button"
+            aria-pressed={filters[f.k]}
+            onClick={() => setFilters((p) => ({ ...p, [f.k]: !p[f.k] }))}
+            className={cn(
+              "press min-h-11 shrink-0 rounded-full border px-4 text-xs font-medium",
+              filters[f.k]
+                ? "border-cyan/50 bg-cyan/10 text-cyan"
+                : "border-border bg-card text-muted-foreground",
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       {listView ? (
         <AirfieldList onFocus={(f) => setSearch({ focus: f.callsign })} />
       ) : (
@@ -129,7 +201,9 @@ function MapPage() {
             layer={layer}
             focus={focus}
             terminal={terminal}
+            filters={filters}
             runwayStatus={runwayStatus}
+
             alertsByTerminal={alertsByTerminal}
             onFocusFlight={(f) => setSearch({ focus: f.callsign === focus ? "" : f.callsign, terminal: "" })}
             onSelectTerminal={(t) => setSearch({ terminal: t, focus: "" })}
