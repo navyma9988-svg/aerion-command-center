@@ -20,7 +20,8 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Check, ChevronLeft, ChevronRight, ShieldAlert, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, FileDown, ShieldAlert, X } from "lucide-react";
+import { printDisruptionSummary } from "@/lib/disruption-pdf";
 
 const STATUS_TABS = [
   { key: "open", label: "Open", states: ["new"] },
