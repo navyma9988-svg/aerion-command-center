@@ -131,38 +131,41 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
         <div className="runway-strip" data-state={stripState} aria-hidden />
         {simulation && (
-          <p
-            role="status"
-            className="mono-data bg-coral/15 px-4 py-1 text-center text-[11px] text-coral"
-          >
+          <p role="status" className="bg-coral/12 px-4 py-1 text-center text-[12px] font-medium text-coral">
             Simulation active — demo data
           </p>
         )}
       </header>
 
-      {/* Desktop rail */}
+      {/* Desktop icon rail */}
       <nav
         aria-label="Sections"
-        className="fixed inset-y-0 left-0 z-40 hidden w-56 flex-col gap-1 border-r border-border bg-sidebar p-3 lg:flex"
+        className="fixed inset-y-0 left-0 z-40 hidden w-[4.5rem] flex-col items-center gap-1.5 border-r border-border bg-sidebar py-4 lg:flex"
       >
-        <p className="mono-data px-3 pb-4 pt-3 text-xs tracking-widest text-muted-foreground">DFW OPS</p>
+        <span aria-hidden className="mb-4 grid size-9 place-items-center rounded-xl bg-amber/12 text-amber">
+          <Radar className="size-4" />
+        </span>
         {NAV.map(({ to, label, icon: Icon }) => (
           <Link
             key={to}
             to={to}
-            className="press flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent"
+            title={label}
+            aria-label={label}
+            className="press group relative grid size-11 place-items-center rounded-xl text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
             activeOptions={{ exact: to === "/" }}
-            activeProps={{ className: "bg-sidebar-accent text-amber" }}
+            activeProps={{ className: "bg-amber/12 text-amber" }}
           >
             <Icon aria-hidden className="size-5" />
-            {label}
+            <span className="pointer-events-none absolute left-[3.5rem] z-50 hidden whitespace-nowrap rounded-md bg-elevated px-2 py-1 text-xs font-medium text-foreground shadow-md group-hover:block">
+              {label}
+            </span>
             {to === "/alerts" && openCount > 0 && (
-              <span className="mono-data ml-auto rounded-full bg-coral/20 px-2 py-0.5 text-xs text-coral">
+              <span className="mono-data absolute right-1 top-1 min-w-4 rounded-full bg-coral px-1 text-[10px] font-semibold leading-4 text-background">
                 {openCount}
               </span>
             )}
             {to === "/timeline" && unseenEventIds.length > 0 && (
-              <span className="mono-data ml-auto rounded-full bg-cyan/20 px-2 py-0.5 text-xs text-cyan">
+              <span className="mono-data absolute right-1 top-1 min-w-4 rounded-full bg-cyan px-1 text-[10px] font-semibold leading-4 text-background">
                 {unseenEventIds.length}
               </span>
             )}
@@ -170,34 +173,34 @@ export function AppShell({ children }: { children: ReactNode }) {
         ))}
       </nav>
 
-      <main id="main" className="mx-auto max-w-5xl px-4 pb-28 pt-24 lg:pb-12 lg:pl-60 lg:pr-6">
+      <main id="main" className="mx-auto max-w-5xl px-4 pb-32 pt-24 lg:pb-12 lg:pl-[5.5rem] lg:pr-6">
         {children}
       </main>
 
-      {/* Mobile bottom bar */}
+      {/* Mobile floating pill dock */}
       <nav
         aria-label="Sections"
-        className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur lg:hidden"
+        className="safe-bottom fixed inset-x-0 bottom-0 z-30 px-3 pb-3 lg:hidden"
       >
-        <ul className="mx-auto grid max-w-lg grid-cols-6">
+        <ul className="mx-auto flex max-w-lg items-center justify-between gap-0.5 rounded-[22px] border border-border bg-card/85 p-1.5 shadow-[var(--shadow-card)] backdrop-blur-xl">
           {NAV.map(({ to, label, icon: Icon }) => (
-            <li key={to}>
+            <li key={to} className="min-w-0 flex-1">
               <Link
                 to={to}
                 activeOptions={{ exact: to === "/" }}
-                activeProps={{ "aria-current": "page", className: "text-amber" }}
+                activeProps={{ "aria-current": "page", className: "text-amber bg-amber/12" }}
                 inactiveProps={{ className: "text-muted-foreground" }}
-                className="press relative flex min-h-14 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[10px] font-medium"
+                className="press relative flex min-h-[46px] flex-col items-center justify-center gap-0.5 rounded-2xl px-0.5 py-1.5 text-[10px] font-medium"
               >
-                <Icon aria-hidden className="size-5" />
+                <Icon aria-hidden className="size-[18px]" />
                 {label}
                 {to === "/alerts" && openCount > 0 && (
-                  <span className="mono-data absolute right-2 top-1.5 rounded-full bg-coral px-1.5 text-[10px] text-background">
+                  <span className="mono-data absolute right-1.5 top-1 min-w-4 rounded-full bg-coral px-1 text-[9px] font-semibold leading-4 text-background">
                     {openCount}
                   </span>
                 )}
                 {to === "/timeline" && unseenEventIds.length > 0 && (
-                  <span className="mono-data absolute right-2 top-1.5 rounded-full bg-cyan px-1.5 text-[10px] text-background">
+                  <span className="mono-data absolute right-1.5 top-1 min-w-4 rounded-full bg-cyan px-1 text-[9px] font-semibold leading-4 text-background">
                     {unseenEventIds.length}
                   </span>
                 )}
