@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Activity, ArrowRight, Pause, Play, Check } from "lucide-react";
+import { Activity, ArrowRight, Gauge, Pause, Play, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOps } from "@/lib/ops-store";
 import { useEventLink } from "@/components/notification-center";
 import { CHANGE_LABEL, EVENT_KIND_LABEL, type EventKind } from "@/lib/airfield-data";
 
 const KINDS: (EventKind | "all")[] = ["all", "weather", "runway", "ramp", "flight", "action"];
+const SPEEDS = [0.5, 1, 2, 4];
 
 export const Route = createFileRoute("/timeline")({
   head: () => ({
