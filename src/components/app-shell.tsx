@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { AIRPORT } from "@/lib/airfield-data";
+import { SplashMoment } from "@/components/splash-moment";
 
 const NAV = [
   { to: "/", label: "Pulse", icon: Radar },
@@ -46,6 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className={cn("min-h-dvh bg-background", density === "compact" && "text-[0.94rem]")}>
+      <SplashMoment />
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
@@ -176,7 +178,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       </nav>
 
       <main id="main" className="mx-auto max-w-5xl px-4 pb-32 pt-24 lg:pb-12 lg:pl-[5.5rem] lg:pr-6">
-        {children}
+        <div key={pathname} className="route-stage">
+          {children}
+        </div>
       </main>
 
       {/* Mobile floating pill dock */}
@@ -190,7 +194,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link
                 to={to}
                 activeOptions={{ exact: to === "/" }}
-                activeProps={{ "aria-current": "page", className: "text-amber bg-amber/12" }}
+                activeProps={{ "aria-current": "page", className: "dock-active text-amber bg-amber/12" }}
                 inactiveProps={{ className: "text-muted-foreground" }}
                 className="press relative flex min-h-[46px] flex-col items-center justify-center gap-0.5 rounded-2xl px-0.5 py-1.5 text-[10px] font-medium"
               >
