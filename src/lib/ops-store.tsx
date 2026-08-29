@@ -351,12 +351,19 @@ export function OpsProvider({ children }: { children: ReactNode }) {
     markEventsSeen,
     streaming,
     setStreaming,
+    speed,
+    setSpeed,
     notifications,
     unreadCount,
     markNotificationRead,
     markAllNotificationsRead,
     dismissNotification,
+    notifPrefs,
+    setNotifPrefs: (p) => setNotifPrefsState((prev) => ({ ...prev, ...p })),
+    quietActive,
+    mutedCount,
   };
+
 
   return <OpsContext.Provider value={value}>{children}</OpsContext.Provider>;
 }
