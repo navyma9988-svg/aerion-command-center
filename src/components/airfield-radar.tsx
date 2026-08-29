@@ -322,8 +322,9 @@ export function AirfieldRadar({
         ref={svgRef}
         viewBox={`0 0 ${WORLD.w} ${WORLD.h}`}
         preserveAspectRatio="xMidYMid meet"
-        className="h-[52dvh] w-full touch-none select-none lg:h-[68dvh]"
+        className="h-auto max-h-[74dvh] w-full touch-none select-none"
         style={{
+          aspectRatio: `${WORLD.w} / ${WORLD.h}`,
           background:
             "radial-gradient(120% 90% at 50% 45%, color-mix(in oklab, var(--color-cyan) 7%, transparent), transparent 70%)",
         }}
