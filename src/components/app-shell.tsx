@@ -1,9 +1,10 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Radar, ClipboardList, Map, TriangleAlert, FileText, Search, Settings2 } from "lucide-react";
+import { Radar, ClipboardList, Map, TriangleAlert, FileText, Search, Settings2, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOps } from "@/lib/ops-store";
 import { CommandSearch } from "@/components/command-search";
+import { NotificationCenter, NotificationToasts } from "@/components/notification-center";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -13,13 +14,14 @@ const NAV = [
   { to: "/", label: "Pulse", icon: Radar },
   { to: "/queue", label: "Queue", icon: ClipboardList },
   { to: "/map", label: "Map", icon: Map },
+  { to: "/timeline", label: "Live", icon: Activity },
   { to: "/alerts", label: "Alerts", icon: TriangleAlert },
   { to: "/brief", label: "Brief", icon: FileText },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [searchOpen, setSearchOpen] = useState(false);
-  const { alerts, simulation, setSimulation, theme, setTheme, density, setDensity, clock } = useOps();
+  const { alerts, unseenEventIds, simulation, setSimulation, theme, setTheme, density, setDensity, clock } = useOps();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const openCount = alerts.filter((a) => a.state === "new").length;
@@ -72,6 +74,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-1">
+            <NotificationCenter />
             <button
               type="button"
               onClick={() => setSearchOpen(true)}
@@ -156,6 +159,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {openCount}
               </span>
             )}
+            {to === "/timeline" && unseenEventIds.length > 0 && (
+              <span className="mono-data ml-auto rounded-full bg-cyan/20 px-2 py-0.5 text-xs text-cyan">
+                {unseenEventIds.length}
+              </span>
+            )}
           </Link>
         ))}
       </nav>
@@ -169,7 +177,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         aria-label="Sections"
         className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur lg:hidden"
       >
-        <ul className="mx-auto grid max-w-lg grid-cols-5">
+        <ul className="mx-auto grid max-w-lg grid-cols-6">
           {NAV.map(({ to, label, icon: Icon }) => (
             <li key={to}>
               <Link
@@ -177,13 +185,18 @@ export function AppShell({ children }: { children: ReactNode }) {
                 activeOptions={{ exact: to === "/" }}
                 activeProps={{ "aria-current": "page", className: "text-amber" }}
                 inactiveProps={{ className: "text-muted-foreground" }}
-                className="press relative flex min-h-14 flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium"
+                className="press relative flex min-h-14 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[10px] font-medium"
               >
                 <Icon aria-hidden className="size-5" />
                 {label}
                 {to === "/alerts" && openCount > 0 && (
-                  <span className="mono-data absolute right-3 top-1.5 rounded-full bg-coral px-1.5 text-[10px] text-background">
+                  <span className="mono-data absolute right-2 top-1.5 rounded-full bg-coral px-1.5 text-[10px] text-background">
                     {openCount}
+                  </span>
+                )}
+                {to === "/timeline" && unseenEventIds.length > 0 && (
+                  <span className="mono-data absolute right-2 top-1.5 rounded-full bg-cyan px-1.5 text-[10px] text-background">
+                    {unseenEventIds.length}
                   </span>
                 )}
               </Link>
@@ -192,6 +205,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </ul>
       </nav>
 
+      <NotificationToasts />
       <CommandSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </div>
   );
