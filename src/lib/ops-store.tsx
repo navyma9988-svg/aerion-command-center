@@ -53,12 +53,46 @@ interface OpsContextValue {
   markEventsSeen: () => void;
   streaming: boolean;
   setStreaming: (v: boolean) => void;
+  speed: number;
+  setSpeed: (v: number) => void;
   /* notification center */
   notifications: OpsNotification[];
   unreadCount: number;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
   dismissNotification: (id: string) => void;
+  notifPrefs: NotifPrefs;
+  setNotifPrefs: (p: Partial<NotifPrefs>) => void;
+  quietActive: boolean;
+  mutedCount: number;
+}
+
+export interface NotifPrefs {
+  severities: Severity[];
+  terminals: string[];
+  quietEnabled: boolean;
+  quietStart: string;
+  quietEnd: string;
+}
+
+export const NOTIF_TERMINALS = ["A", "B", "C", "D", "E", "Airside"];
+
+function eventTerminal(e: OpsEvent): string {
+  if (e.terminal) return e.terminal;
+  const tag = e.tags.find((t) => t.startsWith("Terminal "));
+  if (tag) return tag.replace("Terminal ", "");
+  return "Airside";
+}
+
+function inQuietWindow(now: string, start: string, end: string) {
+  const m = (s: string) => {
+    const [h, mm] = s.split(":");
+    return Number(h) * 60 + Number(mm ?? 0);
+  };
+  const n = m(now.slice(0, 5));
+  const s = m(start);
+  const e = m(end);
+  return s <= e ? n >= s && n < e : n >= s || n < e;
 }
 
 export interface OpsNotification {
