@@ -145,7 +145,7 @@ export function OpsProvider({ children }: { children: ReactNode }) {
       events
         .filter((e) => e.change === "new" || e.change === "escalated")
         .filter((e) => !dismissedIds.includes(e.id))
-        .filter((e) => !SEED_EVENTS.some((s) => s.id === e.id) || readIds.includes(e.id) === false)
+        .filter((e) => !SEED_EVENTS.some((s) => s.id === e.id))
         .map((e) => ({ id: e.id, event: e, read: readIds.includes(e.id) })),
     [events, readIds, dismissedIds],
   );
