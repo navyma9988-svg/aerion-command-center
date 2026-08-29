@@ -10,9 +10,12 @@ import {
 import {
   ACTIONS,
   ALERTS,
+  INCOMING_EVENTS,
+  SEED_EVENTS,
   type AirfieldAction,
   type AlertState,
   type OpsAlert,
+  type OpsEvent,
   type Severity,
 } from "./airfield-data";
 
@@ -44,6 +47,24 @@ interface OpsContextValue {
   completeAction: (id: string) => void;
   clock: string;
   lastSync: string;
+  /* live operations timeline */
+  events: OpsEvent[];
+  unseenEventIds: string[];
+  markEventsSeen: () => void;
+  streaming: boolean;
+  setStreaming: (v: boolean) => void;
+  /* notification center */
+  notifications: OpsNotification[];
+  unreadCount: number;
+  markNotificationRead: (id: string) => void;
+  markAllNotificationsRead: () => void;
+  dismissNotification: (id: string) => void;
+}
+
+export interface OpsNotification {
+  id: string;
+  event: OpsEvent;
+  read: boolean;
 }
 
 const OpsContext = createContext<OpsContextValue | null>(null);
@@ -76,7 +97,74 @@ export function OpsProvider({ children }: { children: ReactNode }) {
   const [density, setDensity] = useState<"comfortable" | "compact">("comfortable");
   const [clock, setClock] = useState("14:32:07");
   const [lastSync, setLastSync] = useState("14:32:07");
+  const [streamIndex, setStreamIndex] = useState(0);
+  const [streaming, setStreaming] = useState(true);
+  const [seenIds, setSeenIds] = useState<string[]>(() => SEED_EVENTS.map((e) => e.id));
+  const [readIds, setReadIds] = useState<string[]>([]);
+  const [dismissedIds, setDismissedIds] = useState<string[]>([]);
   const currentUser = "A. Dadian";
+
+  // Stream one deterministic event at a time while the board is open.
+  useEffect(() => {
+    if (!streaming) return;
+    const t = window.setInterval(
+      () => setStreamIndex((i) => (i >= INCOMING_EVENTS.length ? i : i + 1)),
+      9000,
+    );
+    return () => window.clearInterval(t);
+  }, [streaming]);
+
+  const events = useMemo<OpsEvent[]>(() => {
+    const live = INCOMING_EVENTS.slice(0, streamIndex).slice().reverse();
+    const sim: OpsEvent[] = simulation
+      ? [
+          {
+            id: "EV-SIM",
+            at: "14:33",
+            kind: "runway",
+            severity: "p1",
+            title: "Ground stop issued — DFW arrivals, convective activity west",
+            detail:
+              "Traffic management initiative until 1615 CT. 22 arrivals reprotected, 9 airborne holds.",
+            tags: ["Airside", "17C/35C", "Simulation"],
+            change: "escalated",
+            alertId: "DIS-2412",
+          },
+        ]
+      : [];
+    return [...sim, ...live, ...SEED_EVENTS.slice().reverse()];
+  }, [streamIndex, simulation]);
+
+  const unseenEventIds = useMemo(
+    () => events.filter((e) => !seenIds.includes(e.id)).map((e) => e.id),
+    [events, seenIds],
+  );
+
+  const notifications = useMemo<OpsNotification[]>(
+    () =>
+      events
+        .filter((e) => e.change === "new" || e.change === "escalated")
+        .filter((e) => !dismissedIds.includes(e.id))
+        .filter((e) => !SEED_EVENTS.some((s) => s.id === e.id))
+        .map((e) => ({ id: e.id, event: e, read: readIds.includes(e.id) })),
+    [events, readIds, dismissedIds],
+  );
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const markEventsSeen = useCallback(() => setSeenIds(events.map((e) => e.id)), [events]);
+  const markNotificationRead = useCallback(
+    (id: string) => setReadIds((p) => (p.includes(id) ? p : [...p, id])),
+    [],
+  );
+  const markAllNotificationsRead = useCallback(
+    () => setReadIds(events.map((e) => e.id)),
+    [events],
+  );
+  const dismissNotification = useCallback(
+    (id: string) => setDismissedIds((p) => (p.includes(id) ? p : [...p, id])),
+    [],
+  );
 
   useEffect(() => {
     const root = document.documentElement;
@@ -200,6 +288,16 @@ export function OpsProvider({ children }: { children: ReactNode }) {
     completeAction,
     clock,
     lastSync,
+    events,
+    unseenEventIds,
+    markEventsSeen,
+    streaming,
+    setStreaming,
+    notifications,
+    unreadCount,
+    markNotificationRead,
+    markAllNotificationsRead,
+    dismissNotification,
   };
 
   return <OpsContext.Provider value={value}>{children}</OpsContext.Provider>;

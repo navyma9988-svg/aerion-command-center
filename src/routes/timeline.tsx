@@ -1,0 +1,194 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Activity, ArrowRight, Pause, Play, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useOps } from "@/lib/ops-store";
+import { useEventLink } from "@/components/notification-center";
+import { CHANGE_LABEL, EVENT_KIND_LABEL, type EventKind } from "@/lib/airfield-data";
+
+const KINDS: (EventKind | "all")[] = ["all", "weather", "runway", "ramp", "flight", "action"];
+
+export const Route = createFileRoute("/timeline")({
+  head: () => ({
+    meta: [
+      { title: "Live operations timeline — DFW Airfield Command" },
+      {
+        name: "description",
+        content:
+          "Streaming DFW airfield events with change markers showing what is new, escalated, updated or cleared since your last look.",
+      },
+      { property: "og:title", content: "Live operations timeline — DFW Airfield Command" },
+      {
+        property: "og:description",
+        content: "A streaming DFW event feed that flags everything changed since you last viewed it.",
+      },
+    ],
+  }),
+  component: TimelinePage,
+});
+
+function TimelinePage() {
+  const { events, unseenEventIds, markEventsSeen, streaming, setStreaming, clock } = useOps();
+  const [kind, setKind] = useState<EventKind | "all">("all");
+  // Freeze the "since last view" set on entry so the ribbon stays stable while reading.
+  const [sinceIds, setSinceIds] = useState<string[]>([]);
+  const seeded = useRef(false);
+
+  useEffect(() => {
+    if (!seeded.current && unseenEventIds.length) {
+      setSinceIds(unseenEventIds);
+      seeded.current = true;
+    }
+  }, [unseenEventIds]);
+
+  const newIds = useMemo(
+    () => Array.from(new Set([...sinceIds, ...unseenEventIds])),
+    [sinceIds, unseenEventIds],
+  );
+
+  const list = useMemo(
+    () => (kind === "all" ? events : events.filter((e) => e.kind === kind)),
+    [events, kind],
+  );
+
+  return (
+    <div className="space-y-4">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl font-bold">Live timeline</h1>
+          <p className="mono-data text-xs text-muted-foreground">
+            {streaming ? "Streaming" : "Paused"} · {events.length} events · {clock} CT
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setStreaming(!streaming)}
+          aria-pressed={!streaming}
+          className="press inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-border px-4 text-xs font-medium"
+        >
+          {streaming ? <Pause aria-hidden className="size-4" /> : <Play aria-hidden className="size-4" />}
+          {streaming ? "Pause feed" : "Resume feed"}
+        </button>
+      </header>
+
+      <div
+        role="status"
+        className={cn(
+          "flex items-center gap-2 rounded-xl border px-3 py-2 text-xs",
+          newIds.length ? "border-cyan/50 bg-cyan/10 text-cyan" : "border-border bg-card text-muted-foreground",
+        )}
+      >
+        <Activity aria-hidden className="size-4 shrink-0" />
+        <span className="min-w-0 flex-1">
+          {newIds.length
+            ? `${newIds.length} ${newIds.length === 1 ? "event" : "events"} changed since you last viewed this board`
+            : "You are caught up with the DFW feed"}
+        </span>
+        {newIds.length > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              markEventsSeen();
+              setSinceIds([]);
+            }}
+            className="press inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full border border-cyan px-3 text-xs font-medium"
+          >
+            <Check aria-hidden className="size-3.5" /> Mark reviewed
+          </button>
+        )}
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter timeline by event type">
+        {KINDS.map((k) => (
+          <button
+            key={k}
+            type="button"
+            aria-pressed={kind === k}
+            onClick={() => setKind(k)}
+            className={cn(
+              "press min-h-11 shrink-0 rounded-full border px-4 text-xs font-medium",
+              kind === k
+                ? "border-amber bg-amber/15 text-amber"
+                : "border-border bg-card text-muted-foreground",
+            )}
+          >
+            {k === "all" ? "All events" : EVENT_KIND_LABEL[k]}
+          </button>
+        ))}
+      </div>
+
+      <ol aria-label="Operations event stream" className="relative space-y-2 pl-4">
+        <span aria-hidden className="absolute inset-y-2 left-0 w-px bg-border" />
+        {list.map((e) => (
+          <TimelineRow key={e.id} eventId={e.id} isNew={newIds.includes(e.id)} />
+        ))}
+        {!list.length && (
+          <li className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+            No {kind === "all" ? "" : EVENT_KIND_LABEL[kind].toLowerCase()} events on this shift yet.
+          </li>
+        )}
+      </ol>
+    </div>
+  );
+}
+
+function TimelineRow({ eventId, isNew }: { eventId: string; isNew: boolean }) {
+  const { events } = useOps();
+  const jump = useEventLink();
+  const e = events.find((x) => x.id === eventId);
+  if (!e) return null;
+
+  const tone =
+    e.change === "escalated"
+      ? "text-coral"
+      : e.change === "cleared"
+        ? "text-success"
+        : e.change === "new"
+          ? "text-amber"
+          : "text-muted-foreground";
+
+  return (
+    <li className="relative">
+      <span
+        aria-hidden
+        className={cn(
+          "absolute -left-4 top-5 size-2 -translate-x-1/2 rounded-full",
+          e.severity === "p1" ? "bg-coral" : e.severity === "p2" ? "bg-amber" : "bg-cyan",
+        )}
+      />
+      <button
+        type="button"
+        onClick={() => jump(e)}
+        className={cn(
+          "press w-full rounded-xl border bg-card p-3 text-left",
+          isNew ? "border-cyan/60 bg-cyan/5" : "border-border",
+        )}
+      >
+        <span className="mono-data flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+          <span>{e.at} CT</span>
+          <span aria-hidden>·</span>
+          <span>{EVENT_KIND_LABEL[e.kind]}</span>
+          <span className={cn("font-semibold", tone)}>{CHANGE_LABEL[e.change ?? "updated"]}</span>
+          {isNew && (
+            <span className="rounded-full bg-cyan/20 px-2 py-0.5 text-[10px] font-semibold text-cyan">
+              New since last view
+            </span>
+          )}
+        </span>
+        <span className="mt-1 block text-sm font-semibold leading-snug">{e.title}</span>
+        <span className="mt-1 block text-xs text-muted-foreground">{e.detail}</span>
+        <span className="mono-data mt-2 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+          {e.tags.map((t) => (
+            <span key={t} className="rounded-full border border-border px-2 py-0.5">
+              {t}
+            </span>
+          ))}
+          <span className="ml-auto inline-flex items-center gap-1 text-cyan">
+            {e.alertId ? "Triage" : e.actionId ? "Open action" : "Show on map"}
+            <ArrowRight aria-hidden className="size-3" />
+          </span>
+        </span>
+      </button>
+    </li>
+  );
+}

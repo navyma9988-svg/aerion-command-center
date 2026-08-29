@@ -576,3 +576,203 @@ export const IMPACTS = [
   "Safety",
   "Schedule only",
 ];
+
+/* ------------------------------------------------------------------ */
+/* Live operations event stream (deterministic, replayed on a timer)   */
+/* ------------------------------------------------------------------ */
+
+export type EventKind = "alert" | "action" | "runway" | "flight" | "weather" | "ramp";
+
+export interface OpsEvent {
+  id: string;
+  at: string; // 24h CT
+  kind: EventKind;
+  severity?: Severity | undefined;
+  title: string;
+  detail: string;
+  tags: string[];
+  /** what changed, for the "since you last looked" ribbon */
+  change?: "new" | "escalated" | "updated" | "cleared" | undefined;
+  alertId?: string | undefined;
+  actionId?: string | undefined;
+  callsign?: string | undefined;
+  terminal?: string | undefined;
+}
+
+/** Already on the board when the shift opens. */
+export const SEED_EVENTS: OpsEvent[] = [
+  {
+    id: "EV-0801",
+    at: "13:20",
+    kind: "ramp",
+    severity: "p2",
+    title: "De-ice pad 3 offline — glycol recovery pump failure",
+    detail: "Pads 1 and 2 absorbing demand. Departure queue holding at Taxiway WL, 11 aircraft.",
+    tags: ["Airside", "De-ice"],
+    change: "new",
+    alertId: "DIS-2408",
+  },
+  {
+    id: "EV-0802",
+    at: "13:52",
+    kind: "ramp",
+    severity: "p2",
+    title: "Stand C14 out of service — jet bridge hydraulic fault",
+    detail: "AA2412 and AA1180 reprotected to C17 and C21. Vendor ETA 1500 CT.",
+    tags: ["Terminal C", "C14", "AF-127"],
+    change: "new",
+    alertId: "DIS-2409",
+    actionId: "AF-127",
+  },
+  {
+    id: "EV-0803",
+    at: "14:02",
+    kind: "flight",
+    title: "QR730 entering hold — DOH arrival, 22 min airborne delay",
+    detail: "Assigned BOOVE hold at FL200. Stand D18 protected.",
+    tags: ["Terminal D", "QR730"],
+    change: "updated",
+    callsign: "QR730",
+    terminal: "D",
+  },
+  {
+    id: "EV-0804",
+    at: "14:11",
+    kind: "action",
+    severity: "p1",
+    title: "NOTAM A1142/26 published — Taxiway B closed 2200–0500",
+    detail: "Duct bank tie-in at Sta 14+50. Night departures reroute via Taxiway EK.",
+    tags: ["Terminal C", "TWY B", "AF-133"],
+    change: "new",
+    alertId: "DIS-2410",
+    actionId: "AF-133",
+  },
+  {
+    id: "EV-0805",
+    at: "14:22",
+    kind: "weather",
+    severity: "p1",
+    title: "Ceiling 300 ft — CAT II minima in effect on south flow",
+    detail: "RVR 1,600 ft at 17C touchdown. Arrival spacing increased to 6 NM.",
+    tags: ["Airside", "17C/35C", "CAT II"],
+    change: "escalated",
+    alertId: "DIS-2411",
+  },
+  {
+    id: "EV-0806",
+    at: "14:29",
+    kind: "runway",
+    title: "13L/31R remains closed — pavement panel replacement day 3 of 5",
+    detail: "No change to published closure. Crossing traffic via WM only.",
+    tags: ["Airside", "13L/31R"],
+    change: "updated",
+  },
+];
+
+/** Streamed in one at a time while the board is open. */
+export const INCOMING_EVENTS: OpsEvent[] = [
+  {
+    id: "EV-0807",
+    at: "14:36",
+    kind: "flight",
+    title: "AA2412 breaking hold — cleared ILS 17C, 12 NM final",
+    detail: "Stand C17 confirmed, ramp control notified. Revised on-block 14:51 CT.",
+    tags: ["Terminal C", "AA2412", "17C/35C"],
+    change: "updated",
+    callsign: "AA2412",
+    terminal: "C",
+  },
+  {
+    id: "EV-0808",
+    at: "14:39",
+    kind: "ramp",
+    severity: "p2",
+    title: "Terminal D stand pressure — 5 of 28 stands available",
+    detail: "Two widebody arrivals inside 30 min. Ramp requesting tow of N832AA off D22.",
+    tags: ["Terminal D", "Stands"],
+    change: "new",
+    terminal: "D",
+    alertId: "DIS-2407",
+  },
+  {
+    id: "EV-0809",
+    at: "14:43",
+    kind: "weather",
+    severity: "p1",
+    title: "CAT II escalated — RVR trending 1,200 ft on 17C",
+    detail: "Second look at 14:41 CT shows continued deterioration. Consider flow reduction request to Fort Worth Center.",
+    tags: ["Airside", "17C/35C", "CAT II"],
+    change: "escalated",
+    alertId: "DIS-2411",
+  },
+  {
+    id: "EV-0810",
+    at: "14:47",
+    kind: "action",
+    severity: "p3",
+    title: "AF-133 evidence attached — closure routing bulletin drafted",
+    detail: "Bulletin ready for Ops review before 1800 CT publication deadline.",
+    tags: ["Terminal C", "AF-133"],
+    change: "updated",
+    actionId: "AF-133",
+  },
+  {
+    id: "EV-0811",
+    at: "14:51",
+    kind: "ramp",
+    title: "Stand C14 restored — jet bridge hydraulics tested and signed off",
+    detail: "Vendor closed the fault at 14:49 CT. Stand returned to the allocation pool.",
+    tags: ["Terminal C", "C14", "AF-127"],
+    change: "cleared",
+    alertId: "DIS-2409",
+    actionId: "AF-127",
+  },
+  {
+    id: "EV-0812",
+    at: "14:55",
+    kind: "runway",
+    severity: "p2",
+    title: "17L/35R inspection requested — FOD report from WN1466",
+    detail: "Airfield ops rolling for a 10 min surface sweep. Expect single-runway departures on the west side.",
+    tags: ["Airside", "17L/35R", "FOD"],
+    change: "new",
+    alertId: "DIS-2405",
+  },
+  {
+    id: "EV-0813",
+    at: "14:59",
+    kind: "flight",
+    title: "WN1466 pushed — DEN departure off blocks, +27 min",
+    detail: "Sequenced 6th for 18L. No further impact to the A pier push schedule.",
+    tags: ["Terminal A", "WN1466"],
+    change: "updated",
+    callsign: "WN1466",
+    terminal: "A",
+  },
+  {
+    id: "EV-0814",
+    at: "15:03",
+    kind: "weather",
+    title: "Ceiling improving — 500 ft reported, CAT I review at 1515",
+    detail: "Trend supports returning to 5 NM spacing if it holds for two consecutive observations.",
+    tags: ["Airside", "CAT II"],
+    change: "cleared",
+    alertId: "DIS-2411",
+  },
+];
+
+export const EVENT_KIND_LABEL: Record<EventKind, string> = {
+  alert: "Disruption",
+  action: "Airfield action",
+  runway: "Runway",
+  flight: "Flight",
+  weather: "Weather",
+  ramp: "Ramp",
+};
+
+export const CHANGE_LABEL: Record<NonNullable<OpsEvent["change"]>, string> = {
+  new: "New",
+  escalated: "Escalated",
+  updated: "Updated",
+  cleared: "Cleared",
+};

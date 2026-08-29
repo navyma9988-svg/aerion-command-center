@@ -14,6 +14,7 @@ import { Route as AlertsRouteImport } from './routes/alerts'
 import { Route as BriefRouteImport } from './routes/brief'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as QueueRouteImport } from './routes/queue'
+import { Route as TimelineRouteImport } from './routes/timeline'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const QueueRoute = QueueRouteImport.update({
   path: '/queue',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TimelineRoute = TimelineRouteImport.update({
+  id: '/timeline',
+  path: '/timeline',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/brief': typeof BriefRoute
   '/map': typeof MapRoute
   '/queue': typeof QueueRoute
+  '/timeline': typeof TimelineRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/brief': typeof BriefRoute
   '/map': typeof MapRoute
   '/queue': typeof QueueRoute
+  '/timeline': typeof TimelineRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,14 @@ export interface FileRoutesById {
   '/brief': typeof BriefRoute
   '/map': typeof MapRoute
   '/queue': typeof QueueRoute
+  '/timeline': typeof TimelineRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/alerts' | '/brief' | '/map' | '/queue'
+  fullPaths: '/' | '/alerts' | '/brief' | '/map' | '/queue' | '/timeline'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/alerts' | '/brief' | '/map' | '/queue'
-  id: '__root__' | '/' | '/alerts' | '/brief' | '/map' | '/queue'
+  to: '/' | '/alerts' | '/brief' | '/map' | '/queue' | '/timeline'
+  id: '__root__' | '/' | '/alerts' | '/brief' | '/map' | '/queue' | '/timeline'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +86,7 @@ export interface RootRouteChildren {
   BriefRoute: typeof BriefRoute
   MapRoute: typeof MapRoute
   QueueRoute: typeof QueueRoute
+  TimelineRoute: typeof TimelineRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +126,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QueueRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/timeline': {
+      id: '/timeline'
+      path: '/timeline'
+      fullPath: '/timeline'
+      preLoaderRoute: typeof TimelineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +142,7 @@ const rootRouteChildren: RootRouteChildren = {
   BriefRoute: BriefRoute,
   MapRoute: MapRoute,
   QueueRoute: QueueRoute,
+  TimelineRoute: TimelineRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

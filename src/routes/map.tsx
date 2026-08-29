@@ -138,8 +138,8 @@ function MapPage() {
           <svg
             viewBox="0 0 400 560"
             className="h-[62dvh] w-full touch-pan-y"
-            role="img"
-            aria-label="DFW airfield schematic with seven runways, five terminals and active aircraft"
+            role="group"
+            aria-label="DFW airfield schematic — seven runways, five terminal piers and 12 active aircraft. Use Tab to move between runways, piers and aircraft, then Enter or Space to focus."
           >
             <rect width="400" height="560" fill="transparent" />
 
@@ -149,7 +149,17 @@ function MapPage() {
               const x = RUNWAY_X[i] ?? 200;
               const short = r.id.startsWith("13");
               return (
-                <g key={r.id}>
+                <g
+                  key={r.id}
+                  role="img"
+                  aria-label={`Runway ${r.id}, ${r.length}, ${
+                    status === "active"
+                      ? `active for ${r.flow} flow, ${WIND.approach}`
+                      : status === "notam"
+                        ? "restricted by NOTAM"
+                        : "closed"
+                  }`}
+                >
                   <rect
                     x={x}
                     y={short ? 300 : 40}
@@ -233,9 +243,29 @@ function MapPage() {
                 <g
                   key={p.t}
                   opacity={dim ? 0.4 : 1}
-                  className="cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={selectedT}
+                  aria-label={`Terminal ${p.t}: ${health.standsAvailable} of ${health.standsTotal} stands available, ${health.openActions} open airfield actions, ${health.overdueActions} overdue, security wait ${health.securityWaitMin} minutes${alertsByTerminal.get(p.t) ? `, ${alertsByTerminal.get(p.t)} active disruptions` : ""}. ${selectedT ? "Selected — activate to clear focus" : "Activate to focus this pier"}.`}
+                  className="cursor-pointer outline-none focus-visible:[&>rect]:stroke-cyan focus-visible:[&>rect]:stroke-[3]"
                   onClick={() => setSearch({ terminal: selectedT ? "" : p.t, focus: "" })}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSearch({ terminal: selectedT ? "" : p.t, focus: "" });
+                    }
+                  }}
                 >
+                  {/* enlarged hit area — keeps the tap target comfortably past 44px */}
+                  <rect
+                    x={p.x - 8}
+                    y={p.y - 8}
+                    width="80"
+                    height="96"
+                    rx="30"
+                    fill="transparent"
+                    className="pointer-events-auto"
+                  />
                   <rect
                     x={p.x}
                     y={p.y}
@@ -307,9 +337,20 @@ function MapPage() {
                 <g
                   key={f.id}
                   opacity={dim ? 0.35 : 1}
-                  className="cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={isFocused}
+                  aria-label={`${f.callsign}, ${f.type} ${f.movement === "arrival" ? `arriving from ${f.origin}` : `departing to ${f.destination}`}, runway ${f.runway}, stand ${f.stand} Terminal ${f.terminal}, ${f.status}${f.delayMin > 0 ? `, ${f.delayMin} minutes delayed` : ", on schedule"}. ${isFocused ? "Focused — activate to clear" : "Activate to focus and open flight detail"}.`}
+                  className="cursor-pointer outline-none focus-visible:[&>circle:first-of-type]:stroke-cyan focus-visible:[&>circle:first-of-type]:stroke-[3]"
                   onClick={() => setSearch({ focus: isFocused ? "" : f.callsign, terminal: "" })}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSearch({ focus: isFocused ? "" : f.callsign, terminal: "" });
+                    }
+                  }}
                 >
+                  <circle cx={x} cy={y} r="22" fill="transparent" className="pointer-events-auto" />
                   <circle
                     cx={x}
                     cy={y}
@@ -344,7 +385,7 @@ function MapPage() {
             <span className="inline-flex items-center gap-1">
               <span aria-hidden className="size-2 rounded-full bg-coral" /> 15+ min
             </span>
-            <span>Tap an aircraft or pier to focus</span>
+            <span>Tap or Tab + Enter on an aircraft or pier to focus</span>
           </p>
         </div>
       )}
