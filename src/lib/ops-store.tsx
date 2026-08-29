@@ -47,6 +47,24 @@ interface OpsContextValue {
   completeAction: (id: string) => void;
   clock: string;
   lastSync: string;
+  /* live operations timeline */
+  events: OpsEvent[];
+  unseenEventIds: string[];
+  markEventsSeen: () => void;
+  streaming: boolean;
+  setStreaming: (v: boolean) => void;
+  /* notification center */
+  notifications: OpsNotification[];
+  unreadCount: number;
+  markNotificationRead: (id: string) => void;
+  markAllNotificationsRead: () => void;
+  dismissNotification: (id: string) => void;
+}
+
+export interface OpsNotification {
+  id: string;
+  event: OpsEvent;
+  read: boolean;
 }
 
 const OpsContext = createContext<OpsContextValue | null>(null);
