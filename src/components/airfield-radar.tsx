@@ -30,19 +30,31 @@ type ViewState = { k: number; x: number; y: number };
 const DEFAULT_VIEW: ViewState = { k: 1, x: 0, y: 0 };
 const VIEW_KEY = "dfw.radar.view";
 
+/** Phones start zoomed into the terminal core; desktop shows the whole field. */
+function initialView(): ViewState {
+  if (typeof window === "undefined" || window.innerWidth >= 640) return DEFAULT_VIEW;
+  const k = 2.2;
+  return {
+    k,
+    x: Math.min(0, Math.max(WORLD.w - WORLD.w * k, WORLD.w / 2 - TOWER.x * k)),
+    y: Math.min(0, Math.max(WORLD.h - WORLD.h * k, WORLD.h / 2 - TOWER.y * k)),
+  };
+}
+
 /** Session-scoped memory so zoom/pan survives tab switches. */
 function readStoredView(): ViewState {
   if (typeof window === "undefined") return DEFAULT_VIEW;
   try {
     const raw = window.sessionStorage.getItem(VIEW_KEY);
-    if (!raw) return DEFAULT_VIEW;
+    if (!raw) return initialView();
     const v = JSON.parse(raw) as ViewState;
     if (typeof v?.k === "number" && typeof v.x === "number" && typeof v.y === "number") return v;
   } catch {
     /* ignore */
   }
-  return DEFAULT_VIEW;
+  return initialView();
 }
+
 
 function horseshoePath(cx: number, cy: number, open: "east" | "west", r: number) {
   const sweep = open === "east" ? 0 : 1;
