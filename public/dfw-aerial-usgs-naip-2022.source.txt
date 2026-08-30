@@ -1,0 +1,62 @@
+DFW AIRFIELD AERIAL IMAGERY — SOURCE AND ALIGNMENT RECORD
+
+Asset
+  File: dfw-aerial-usgs-naip-2022.webp
+  Dimensions: 2400 x 1524 pixels
+  Format: WebP, quality 84, metadata stripped
+  SHA-256: 1d3086e18ef9f69c00d59cb798743d225ae42fec1178306c62322271e0053087
+  Prepared: 2026-08-29
+
+Authoritative source
+  Publisher: U.S. Geological Survey (USGS), The National Map
+  Contributing agency: USDA Farm Service Agency, Aerial Photography Field Office
+  Service: USGS NAIP Plus ImageServer, NaturalColor rendering function
+  Service record:
+    https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPPlus/ImageServer
+  Exact export request:
+    https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPPlus/ImageServer/exportImage?bbox=-97.0880447164%2C32.8708236967%2C-96.9959312836%2C32.9199380937&bboxSR=4326&size=2400%2C1524&imageSR=4326&format=jpg&compressionQuality=92&interpolation=RSP_BilinearInterpolation&renderingRule=%7B%22rasterFunction%22%3A%22NaturalColor%22%7D&returnSquarePixels=false&validateExtent=false&f=image
+
+Source imagery
+  Program: National Agriculture Imagery Program (NAIP)
+  Source resolution: 0.6 metre
+  Source datum/projection: NAD83 / UTM Zone 14N; exported by USGS to EPSG:4326
+  Acquisition dates: 2022-07-04 and 2022-07-13
+  Intersecting primary source tiles:
+    m_3209601_sw_14_060_20220704 — 2022-07-04 — EarthExplorer NAIP 3285762
+    m_3209609_nw_14_060_20220704 — 2022-07-04 — EarthExplorer NAIP 3285791
+    m_3209708_se_14_060_20220704 — 2022-07-04 — EarthExplorer NAIP 3281339
+    m_3209708_sw_14_060_20220713 — 2022-07-13 — EarthExplorer NAIP 3281340
+    m_3209716_ne_14_060_20220704 — 2022-07-04 — EarthExplorer NAIP 3281368
+    m_3209716_nw_14_060_20220713 — 2022-07-13 — EarthExplorer NAIP 3281369
+
+License and reuse
+  USGS describes The National Map orthoimagery downloads as public-domain data.
+  Official usage/source page:
+    https://www.usgs.gov/tools/download-data-maps-national-map
+  Recommended courtesy credit:
+    USGS, USDA, The National Map: Orthoimagery (2022 NAIP)
+
+Crop and orientation
+  North-up WGS84 bounds, in ArcGIS xmin,ymin,xmax,ymax order:
+    -97.0880447164, 32.8708236967, -96.9959312836, 32.9199380937
+  Northwest corner: 32.9199380937 N, 97.0880447164 W
+  Southeast corner: 32.8708236967 N, 96.9959312836 W
+  The 2400 x 1524 export is exactly 2x the radar's 1200 x 762 SVG world.
+
+Alignment contract
+  These bounds are the inverse projection of src/lib/airfield-geo.ts at world
+  coordinates (0,0) and (1200,762). They include the existing 64-world-unit
+  perimeter padding. Place the image at SVG x=0, y=0, width=1200, height=762,
+  with preserveAspectRatio="none". Do not alter runway coordinates, WORLD,
+  SCALE, padding, or the radar viewBox.
+
+Alignment caveats
+  The application uses a local equirectangular projection centred at
+  32.894 N, 97.041 W. The EPSG:4326 export is intentionally stretched into
+  the same local aspect ratio; this is required for the existing surveyed
+  vector geometry to coincide with the image.
+  Source imagery is a mosaic acquired on two dates, so subtle colour seams or
+  aircraft/vehicle position differences are expected. It is context imagery,
+  not current operational surveillance.
+  Use a dark navy colour wash and reduced opacity in the UI so operational
+  vectors, labels, focus rings, and status colours retain WCAG contrast.

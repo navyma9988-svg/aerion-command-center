@@ -73,7 +73,7 @@ export function NotificationToasts() {
     <div
       role="region"
       aria-label="New disruption notifications"
-      className="safe-bottom pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+9rem)] z-40 mx-auto flex max-w-md flex-col gap-2 px-3 lg:inset-x-auto lg:bottom-auto lg:right-5 lg:top-20 lg:mx-0 lg:max-w-sm"
+      className="safe-bottom pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+9rem)] z-[var(--z-toast)] mx-auto flex max-w-md flex-col gap-2 px-3 lg:inset-x-auto lg:bottom-auto lg:right-5 lg:top-20 lg:mx-0 lg:max-w-sm"
     >
       {queue.map((n) => (
         <div

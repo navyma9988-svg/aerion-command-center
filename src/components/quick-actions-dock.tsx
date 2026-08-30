@@ -126,13 +126,22 @@ export function QuickActionsDock() {
   const actions: QuickAction[] = byRoute[pathname] ?? [
     newDisruption,
     feed,
-    { key: "alerts", label: "Triage", icon: Bell, run: () => navigate({ to: "/alerts", search: { item: "", status: "open", severity: "", terminal: "", runway: "" } }) },
+    {
+      key: "alerts",
+      label: "Triage",
+      icon: Bell,
+      run: () =>
+        navigate({
+          to: "/alerts",
+          search: { item: "", status: "open", severity: "", terminal: "", runway: "" },
+        }),
+    },
   ];
 
   const isCollapsed = collapsed && !expandedOverride;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+5.25rem)] z-30 flex justify-center px-3 lg:bottom-6 lg:left-auto lg:right-6 lg:justify-end lg:pl-0">
+    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+5.25rem)] z-[var(--z-header)] flex justify-center px-3 lg:bottom-6 lg:left-auto lg:right-6 lg:justify-end lg:pl-0">
       {isCollapsed ? (
         <button
           type="button"
@@ -158,7 +167,9 @@ export function QuickActionsDock() {
               aria-label={full ?? label}
               className={cn(
                 "press inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12px] font-medium",
-                active ? "bg-amber/15 text-amber" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                active
+                  ? "bg-amber/15 text-amber"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground",
               )}
             >
               <Icon aria-hidden className="size-4" />

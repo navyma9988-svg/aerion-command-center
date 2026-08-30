@@ -65,6 +65,7 @@ function lerp(a: number, b: number, t: number) {
 }
 
 export interface RadarProps {
+  displayMode?: "aerial" | "surveillance";
   layer: "gates" | "actions" | "work";
   focus: string;
   terminal: string;
@@ -76,6 +77,7 @@ export interface RadarProps {
 }
 
 export function AirfieldRadar({
+  displayMode = "aerial",
   layer,
   focus,
   terminal,
@@ -85,6 +87,7 @@ export function AirfieldRadar({
   onFocusFlight,
   onSelectTerminal,
 }: RadarProps) {
+  const isAerial = displayMode === "aerial";
   const svgRef = useRef<SVGSVGElement | null>(null);
   const baseRef = useRef<SVGGElement | null>(null);
   const sweepRef = useRef<SVGGElement | null>(null);
@@ -362,7 +365,7 @@ export function AirfieldRadar({
   }, [visiblePlanes.length, planes.length]);
 
   return (
-    <div className="radar-frame relative overflow-hidden">
+    <div className="radar-frame relative overflow-hidden" data-display={displayMode}>
       <p aria-live="polite" role="status" className="sr-only">
         {announcement}
       </p>
@@ -378,7 +381,7 @@ export function AirfieldRadar({
             "radial-gradient(120% 90% at 50% 45%, color-mix(in oklab, var(--color-cyan) 7%, transparent), transparent 70%)",
         }}
         role="group"
-        aria-label="DFW ground surveillance display, north up, drawn to surveyed runway geometry. Contains seven runways, five terminal horseshoes and active aircraft. Drag to pan, pinch or scroll to zoom. Tab moves through runways, then terminals, then aircraft; Enter or Space selects."
+        aria-label={`DFW ${isAerial ? "aerial operations map" : "ground surveillance display"}, north up, with overlays drawn to surveyed runway geometry. Contains seven runways, five terminal horseshoes and active aircraft. Drag to pan, pinch or scroll to zoom. Tab moves through runways, terminals and aircraft; Enter or Space selects a terminal or aircraft.`}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endPointer}
@@ -417,7 +420,22 @@ export function AirfieldRadar({
             transition: smoothZoom ? "transform 210ms cubic-bezier(0.22, 1, 0.36, 1)" : "none",
           }}
         >
-          <RadarBackdrop k={view.k} sweepRef={sweepRef} />
+          {isAerial && (
+            <>
+              <image
+                href="/dfw-aerial-usgs-naip-2022.webp"
+                x="0"
+                y="0"
+                width={WORLD.w}
+                height={WORLD.h}
+                preserveAspectRatio="none"
+                className="radar-aerial-image"
+              />
+              <rect x="0" y="0" width={WORLD.w} height={WORLD.h} className="radar-aerial-tint" />
+            </>
+          )}
+
+          <RadarBackdrop k={view.k} sweepRef={sweepRef} displayMode={displayMode} />
 
           {/* runways — true surveyed positions and widths */}
           {RUNWAYS.map((r) => {
@@ -430,7 +448,7 @@ export function AirfieldRadar({
             return (
               <g
                 key={r.id}
-                role="button"
+                role="img"
                 tabIndex={0}
                 aria-label={`Runway ${r.id}, ${r.length}, ${
                   status === "active"
@@ -448,11 +466,27 @@ export function AirfieldRadar({
                   x2={g.x2}
                   y2={g.y2}
                   style={{
-                    stroke:
-                      "color-mix(in oklab, var(--color-foreground) 17%, var(--color-background))",
+                    stroke: isAerial
+                      ? "color-mix(in oklab, var(--color-foreground) 58%, var(--color-background))"
+                      : "color-mix(in oklab, var(--color-foreground) 17%, var(--color-background))",
                   }}
                   strokeWidth={g.width}
                 />
+                {isAerial && (
+                  <line
+                    x1={g.x1}
+                    y1={g.y1}
+                    x2={g.x2}
+                    y2={g.y2}
+                    className={cn(
+                      status === "active" && "stroke-amber",
+                      status === "notam" && "stroke-amber",
+                      status === "closed" && "stroke-coral",
+                    )}
+                    strokeWidth={g.width + 10}
+                    opacity={status === "active" ? 0.08 : 0.15}
+                  />
+                )}
                 {status === "closed" && (
                   <line
                     x1={g.x1}
@@ -481,7 +515,7 @@ export function AirfieldRadar({
                   y1={g.y1}
                   x2={g.x2}
                   y2={g.y2}
-                  strokeWidth="2"
+                  strokeWidth={isAerial ? 2.6 : 2}
                   strokeDasharray="16 22"
                   className={cn(
                     status === "active" && "stroke-amber",
@@ -833,9 +867,17 @@ export function AirfieldRadar({
         </button>
       </div>
 
-      <p className="radar-data-block mono-data pointer-events-none absolute left-3 top-3 rounded-lg bg-background/65 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur-md">
-        ASDE-X · {WIND.flow} · {Math.round(view.k * 10) / 10}×
+      <p className="radar-data-block mono-data pointer-events-none absolute left-3 top-3 rounded-lg bg-background/72 px-2.5 py-1.5 text-[10px] text-muted-foreground backdrop-blur-md">
+        <span className={isAerial ? "text-amber" : "text-cyan"}>
+          {isAerial ? "AERIAL OPS" : "ASDE-X"}
+        </span>{" "}
+        · {WIND.flow} · {Math.round(view.k * 10) / 10}×
       </p>
+      {isAerial && (
+        <p className="radar-attribution mono-data pointer-events-none absolute bottom-3 left-3 rounded-md bg-background/68 px-2 py-1 text-[9px] text-muted-foreground backdrop-blur-md">
+          USGS · NAIP 2022
+        </p>
+      )}
     </div>
   );
 }
@@ -844,10 +886,13 @@ export function AirfieldRadar({
 const RadarBackdrop = memo(function RadarBackdrop({
   k,
   sweepRef,
+  displayMode,
 }: {
   k: number;
   sweepRef: React.RefObject<SVGGElement | null>;
+  displayMode: "aerial" | "surveillance";
 }) {
+  const isAerial = displayMode === "aerial";
   const rings = useMemo(() => [140, 280, 420, 560], []);
   return (
     <g pointerEvents="none">
@@ -859,7 +904,7 @@ const RadarBackdrop = memo(function RadarBackdrop({
           r={r}
           className="fill-none stroke-cyan"
           strokeWidth={1 / k}
-          opacity="0.14"
+          opacity={isAerial ? 0.06 : 0.14}
         />
       ))}
       <line
@@ -869,7 +914,7 @@ const RadarBackdrop = memo(function RadarBackdrop({
         y2={WORLD.h}
         className="stroke-cyan"
         strokeWidth={1 / k}
-        opacity="0.08"
+        opacity={isAerial ? 0.035 : 0.08}
       />
       <line
         x1={0}
@@ -878,31 +923,32 @@ const RadarBackdrop = memo(function RadarBackdrop({
         y2={TOWER.y}
         className="stroke-cyan"
         strokeWidth={1 / k}
-        opacity="0.08"
+        opacity={isAerial ? 0.035 : 0.08}
       />
 
-      <g ref={sweepRef}>
+      <g ref={sweepRef} opacity={isAerial ? 0.42 : 1}>
         <path
           d={`M ${TOWER.x},${TOWER.y} L ${TOWER.x + 580},${TOWER.y - 340} A 670,670 0 0 1 ${TOWER.x + 580},${TOWER.y + 340} Z`}
           fill="url(#sweep-grad)"
         />
       </g>
 
-      {TAXIWAYS.map((t, i) => (
-        <line
-          key={i}
-          x1={t.x1}
-          y1={t.y1}
-          x2={t.x2}
-          y2={t.y2}
-          style={{
-            stroke: "color-mix(in oklab, var(--color-foreground) 12%, var(--color-background))",
-          }}
-          strokeWidth="7"
-          strokeLinecap="round"
-          opacity="0.9"
-        />
-      ))}
+      {!isAerial &&
+        TAXIWAYS.map((t, i) => (
+          <line
+            key={i}
+            x1={t.x1}
+            y1={t.y1}
+            x2={t.x2}
+            y2={t.y2}
+            style={{
+              stroke: "color-mix(in oklab, var(--color-foreground) 12%, var(--color-background))",
+            }}
+            strokeWidth="7"
+            strokeLinecap="round"
+            opacity="0.9"
+          />
+        ))}
     </g>
   );
 });

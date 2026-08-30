@@ -29,6 +29,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { AIRPORT } from "@/lib/airfield-data";
 import { SplashMoment } from "@/components/splash-moment";
+import { BrandMark } from "@/components/brand-mark";
 
 const NAV = [
   { to: "/", label: "Pulse", icon: Radar },
@@ -95,26 +96,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       <SplashMoment />
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[var(--z-toast)] focus:rounded-lg focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
       >
         Skip to content
       </a>
 
-      <header className="safe-top fixed inset-x-0 top-0 z-30 border-b border-border bg-background/80 backdrop-blur-xl lg:pl-[4.5rem]">
+      <header className="safe-top fixed inset-x-0 top-0 z-[var(--z-header)] border-b border-border bg-background/80 backdrop-blur-xl lg:pl-[4.5rem]">
         <div className="mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5">
           <div className="flex min-w-0 items-center gap-2.5">
-            <span className="relative grid size-9 shrink-0 place-items-center rounded-xl bg-amber/12 ring-1 ring-amber/25">
-              <span
-                aria-hidden
-                className="absolute inset-0 rounded-xl opacity-60"
-                style={{
-                  background:
-                    "conic-gradient(from 0deg, color-mix(in oklab, var(--color-amber) 45%, transparent), transparent 45%)",
-                  animation: "radar-sweep 4s linear infinite",
-                }}
-              />
-              <Radar aria-hidden className="relative size-4 text-amber" />
-            </span>
+            <BrandMark className="size-9 shrink-0" />
             <div className="min-w-0">
               <p className="truncate text-[15px] font-semibold leading-tight tracking-tight">
                 DFW Airfield Command
@@ -203,14 +193,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Desktop icon rail */}
       <nav
         aria-label="Sections"
-        className="fixed inset-y-0 left-0 z-40 hidden w-[4.5rem] flex-col items-center gap-1.5 border-r border-border bg-sidebar py-4 lg:flex"
+        className="fixed inset-y-0 left-0 z-[var(--z-header)] hidden w-[4.5rem] flex-col items-center gap-1.5 border-r border-border bg-sidebar py-4 lg:flex"
       >
-        <span
-          aria-hidden
-          className="mb-4 grid size-9 place-items-center rounded-xl bg-amber/12 text-amber"
-        >
-          <Radar className="size-4" />
-        </span>
+        <BrandMark className="mb-4 size-9" />
         {NAV.map(({ to, label, icon: Icon }) => (
           <Link
             key={to}
@@ -222,7 +207,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             activeProps={{ className: "bg-amber/12 text-amber" }}
           >
             <Icon aria-hidden className="size-5" />
-            <span className="pointer-events-none absolute left-[3.5rem] z-50 hidden whitespace-nowrap rounded-lg bg-elevated px-2 py-1 text-xs font-medium text-foreground shadow-md group-hover:block">
+            <span className="pointer-events-none absolute left-[3.5rem] z-[var(--z-popover)] hidden whitespace-nowrap rounded-lg bg-elevated px-2 py-1 text-xs font-medium text-foreground shadow-md group-hover:block">
               {label}
             </span>
             {to === "/alerts" && openCount > 0 && (
@@ -279,7 +264,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Mobile floating pill dock */}
       <nav
         aria-label="Sections"
-        className="safe-bottom fixed inset-x-0 bottom-0 z-30 px-3 pb-3 lg:hidden"
+        className="safe-bottom fixed inset-x-0 bottom-0 z-[var(--z-header)] px-3 pb-3 lg:hidden"
       >
         <ul className="mx-auto flex max-w-lg items-center justify-between gap-0.5 rounded-[22px] border border-border bg-card/85 p-1.5 shadow-[var(--shadow-card)] backdrop-blur-xl">
           {NAV.map(({ to, label, icon: Icon }) => (

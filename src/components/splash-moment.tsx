@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Radar } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BrandMark } from "@/components/brand-mark";
 
 export function SplashMoment() {
   const [phase, setPhase] = useState<"enter" | "exit" | "done">("enter");
@@ -24,10 +24,7 @@ export function SplashMoment() {
       className={cn("launch-screen", phase === "exit" && "launch-screen--exit")}
     >
       <div className="launch-screen__glow" aria-hidden />
-      <div className="launch-mark" aria-hidden>
-        <span className="launch-mark__sweep" />
-        <Radar className="relative size-8" strokeWidth={1.7} />
-      </div>
+      <BrandMark className="launch-mark" />
       <div className="text-center">
         <p className="text-[22px] font-bold tracking-[-0.04em]">AERION</p>
         <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">

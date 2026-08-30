@@ -4,7 +4,7 @@ import { useOps } from "@/lib/ops-store";
 import { FLIGHTS, RUNWAYS, TERMINAL_HEALTH, WIND, type Flight } from "@/lib/airfield-data";
 import { AirfieldRadar, ALL_FILTERS, type RadarFilters } from "@/components/airfield-radar";
 import { cn } from "@/lib/utils";
-import { Plane, Crosshair, List } from "lucide-react";
+import { Plane, Crosshair, List, Radar, Satellite } from "lucide-react";
 import {
   Drawer,
   DrawerContent,
@@ -12,7 +12,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-
 
 type Layer = "gates" | "actions" | "work";
 
@@ -47,6 +46,8 @@ export const Route = createFileRoute("/map")({
 
 const FILTER_KEY = "dfw.radar.filters";
 const FOCUS_KEY = "dfw.radar.focus";
+const DISPLAY_KEY = "dfw.radar.display";
+type DisplayMode = "aerial" | "surveillance";
 
 const FILTER_META: { k: keyof RadarFilters; label: string }[] = [
   { k: "onTime", label: "On time" },
@@ -60,6 +61,12 @@ function MapPage() {
   const { focus, terminal, layer } = Route.useSearch();
   const navigate = useNavigate({ from: "/map" });
   const [listView, setListView] = useState(false);
+  const [displayMode, setDisplayMode] = useState<DisplayMode>(() => {
+    if (typeof window === "undefined") return "aerial";
+    return window.sessionStorage.getItem(DISPLAY_KEY) === "surveillance"
+      ? "surveillance"
+      : "aerial";
+  });
   const [filters, setFilters] = useState<RadarFilters>(() => {
     if (typeof window === "undefined") return ALL_FILTERS;
     try {
@@ -85,6 +92,14 @@ function MapPage() {
 
   useEffect(() => {
     try {
+      window.sessionStorage.setItem(DISPLAY_KEY, displayMode);
+    } catch {
+      /* ignore */
+    }
+  }, [displayMode]);
+
+  useEffect(() => {
+    try {
       if (focus) window.sessionStorage.setItem(FOCUS_KEY, focus);
     } catch {
       /* ignore */
@@ -106,7 +121,6 @@ function MapPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
   const runwayStatus = useMemo(() => {
     const m = new Map(RUNWAYS.map((r) => [r.id, r.status as string]));
     if (simulation) m.set("17C/35C", "notam");
@@ -117,7 +131,9 @@ function MapPage() {
     const m = new Map<string, number>();
     alerts
       .filter((a) => a.state !== "resolved")
-      .forEach((a) => a.terminal && m.set(String(a.terminal), (m.get(String(a.terminal)) ?? 0) + 1));
+      .forEach(
+        (a) => a.terminal && m.set(String(a.terminal), (m.get(String(a.terminal)) ?? 0) + 1),
+      );
     return m;
   }, [alerts]);
 
@@ -125,6 +141,13 @@ function MapPage() {
     <div className="space-y-4">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <div className="min-w-0">
+          <p className="mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-success">
+            <span
+              aria-hidden
+              className="size-1.5 rounded-full bg-success shadow-[0_0_10px_var(--color-success)]"
+            />
+            Live field view
+          </p>
           <h1 className="text-[26px] font-bold tracking-tight">Airfield map</h1>
           <p className="mono-data text-xs text-muted-foreground">
             {WIND.flow} · {WIND.dir}° / {WIND.kt}kt · {WIND.approach}
@@ -139,6 +162,32 @@ function MapPage() {
           <List aria-hidden className="size-4" /> {listView ? "Map view" : "List view"}
         </button>
       </header>
+
+      {!listView && (
+        <div className="map-mode-bar">
+          <div className="map-mode-switch" role="group" aria-label="Map display">
+            <button
+              type="button"
+              aria-pressed={displayMode === "aerial"}
+              onClick={() => setDisplayMode("aerial")}
+              className={cn("press", displayMode === "aerial" && "map-mode-switch__active")}
+            >
+              <Satellite aria-hidden className="size-4" /> Aerial ops
+            </button>
+            <button
+              type="button"
+              aria-pressed={displayMode === "surveillance"}
+              onClick={() => setDisplayMode("surveillance")}
+              className={cn("press", displayMode === "surveillance" && "map-mode-switch__active")}
+            >
+              <Radar aria-hidden className="size-4" /> ASDE-X
+            </button>
+          </div>
+          <p className="hidden text-[11px] text-muted-foreground sm:block">
+            Surveyed vectors · north up · local imagery
+          </p>
+        </div>
+      )}
 
       <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Map overlays">
         {(
@@ -198,6 +247,7 @@ function MapPage() {
       ) : (
         <div className="overflow-hidden surface-card p-0">
           <AirfieldRadar
+            displayMode={displayMode}
             layer={layer}
             focus={focus}
             terminal={terminal}
@@ -205,11 +255,13 @@ function MapPage() {
             runwayStatus={runwayStatus}
 
             alertsByTerminal={alertsByTerminal}
-            onFocusFlight={(f) => setSearch({ focus: f.callsign === focus ? "" : f.callsign, terminal: "" })}
+            onFocusFlight={(f) =>
+              setSearch({ focus: f.callsign === focus ? "" : f.callsign, terminal: "" })
+            }
             onSelectTerminal={(t) => setSearch({ terminal: t, focus: "" })}
           />
 
-          <p className="mono-data flex flex-wrap gap-3 border-t border-border px-3 py-2 text-[10px] text-muted-foreground">
+          <p className="mono-data flex flex-wrap gap-x-3 gap-y-1 border-t border-border px-3 py-2 text-[10px] text-muted-foreground">
             <span className="inline-flex items-center gap-1">
               <span aria-hidden className="size-2 rounded-full bg-cyan" /> On time
             </span>
@@ -219,7 +271,9 @@ function MapPage() {
             <span className="inline-flex items-center gap-1">
               <span aria-hidden className="size-2 rounded-full bg-coral" /> 15+ min
             </span>
-            <span>Pinch or scroll to zoom · drag to pan · double-tap to zoom in</span>
+            <span className="basis-full sm:basis-auto">
+              Pinch or scroll to zoom · drag to pan · double-tap to zoom in
+            </span>
           </p>
         </div>
       )}
@@ -235,7 +289,6 @@ function MapPage() {
           {focused && <FlightDetail flight={focused} />}
         </DrawerContent>
       </Drawer>
-
     </div>
   );
 }
@@ -252,7 +305,6 @@ function TerminalPanel({ terminal }: { terminal: string }) {
         </DrawerDescription>
       </DrawerHeader>
       <dl className="mono-data grid grid-cols-2 gap-3 px-4 pb-8 text-xs">
-
         <div>
           <dt className="text-muted-foreground">Stands available</dt>
           <dd>
@@ -275,7 +327,6 @@ function TerminalPanel({ terminal }: { terminal: string }) {
     </>
   );
 }
-
 
 function FlightDetail({ flight }: { flight: Flight }) {
   const navigate = useNavigate();
@@ -336,7 +387,13 @@ function FlightDetail({ flight }: { flight: Flight }) {
           onClick={() =>
             navigate({
               to: "/alerts",
-              search: { item: "", status: "open", severity: "", terminal: flight.terminal, runway: "" },
+              search: {
+                item: "",
+                status: "open",
+                severity: "",
+                terminal: flight.terminal,
+                runway: "",
+              },
             })
           }
           className="press min-h-11 w-full rounded-xl border border-border text-sm font-medium"
@@ -372,7 +429,9 @@ function AirfieldList({ onFocus }: { onFocus: (f: Flight) => void }) {
               >
                 {f.est}
               </span>
-              <span className="mono-data w-10 text-right text-xs text-muted-foreground">{f.stand}</span>
+              <span className="mono-data w-10 text-right text-xs text-muted-foreground">
+                {f.stand}
+              </span>
             </button>
           </li>
         ))}
