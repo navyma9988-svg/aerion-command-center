@@ -117,11 +117,11 @@ Interactive elements expose default, hover, gold focus-visible, pressed scale `0
 
 ### Buttons and actions
 
-Gold fill is reserved for the primary action. Secondary actions use tonal or hairline treatments. Status colors communicate status, not general emphasis. Icon-only controls remain 44px and require an accessible name. Destructive actions remain separated and explicitly labeled.
+Gold fill is reserved for the primary action. Secondary actions use tonal or hairline treatments. The shared `OpsButton` combines intent with emphasis and uses a calibrated 12px rectangular control shape instead of default pill geometry. Status colors communicate status, not general emphasis. Icon-only controls remain 44px and require an accessible name. Destructive actions remain separated and explicitly labeled.
 
 ### Navigation and data display
 
-Mobile navigation uses the safe-area bottom dock; desktop uses the icon rail with accessible labels. Route transitions share the subtle slide/fade. Operational lists keep dividers quiet and numerical columns tabular. The Map display switch is a two-option authored button group; overlay and traffic chips remain independent filters.
+Mobile navigation uses the safe-area bottom dock; desktop uses the icon rail with accessible labels. Route transitions share the subtle slide/fade. Operational lists keep dividers quiet and numerical columns tabular. The Pulse hero uses a compact surveyed-geometry surface-surveillance preview as its single graphic signature. The Map display switch is a two-option authored button group; overlay and traffic chips remain independent filters. Dense triage filters live in one command console with one visible option bank at a time instead of stacked pill carousels.
 
 ### Forms and overlays
 
