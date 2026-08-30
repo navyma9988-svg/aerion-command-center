@@ -117,7 +117,12 @@ function PulsePage() {
         <h2 id="status-h" className="sr-only">
           Action status
         </h2>
-        <StatTile label="Overdue" value={counts.overdue.length} sub="worst 21 days past due" tone="coral" />
+        <StatTile
+          label="Overdue"
+          value={counts.overdue.length}
+          sub="worst 21 days past due"
+          tone="coral"
+        />
         <StatTile label="Due today" value={counts.dueToday} sub="need action by EOD" tone="amber" />
         <StatTile label="Blocked" value={counts.blocked} sub="nothing waiting" tone="muted" />
         <StatTile label="Closing" value={counts.closing} sub="sign-off pending" tone="cyan" />
@@ -157,13 +162,17 @@ function PulsePage() {
                   <TriangleAlert aria-hidden className="size-[18px]" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="line-clamp-2 text-[15px] font-semibold leading-snug">{a.title}</span>
+                  <span className="line-clamp-2 text-[15px] font-semibold leading-snug">
+                    {a.title}
+                  </span>
                   <span className="mt-0.5 block text-[13px] text-muted-foreground">
                     {a.severity.toUpperCase()}
                     <span className="dot-sep">{a.runway ?? a.terminal ?? "Airside"}</span>
                   </span>
                 </span>
-                <span className="mono-data shrink-0 text-[13px] text-muted-foreground">{a.time}</span>
+                <span className="mono-data shrink-0 text-[13px] text-muted-foreground">
+                  {a.time}
+                </span>
               </li>
             ))}
           </ul>
@@ -171,9 +180,7 @@ function PulsePage() {
       </section>
 
       <section aria-labelledby="aging-h" className="surface-card">
-        <h2 id="aging-h">
-          Overdue aging
-        </h2>
+        <h2 id="aging-h">Overdue aging</h2>
         <ul className="mt-3 space-y-3">
           {counts.overdue.map((a, i) => {
             const days = i === 0 ? 21 : 14;
@@ -196,9 +203,7 @@ function PulsePage() {
       </section>
 
       <section aria-labelledby="load-h" className="surface-card">
-        <h2 id="load-h">
-          Workload by owner
-        </h2>
+        <h2 id="load-h">Workload by owner</h2>
         <ul className="mt-3 space-y-3">
           {workload.map((w) => (
             <li key={w.initials}>
@@ -230,12 +235,13 @@ function PulsePage() {
       </section>
 
       <section aria-labelledby="rw-h" className="surface-card">
-        <h2 id="rw-h">
-          Runway status
-        </h2>
+        <h2 id="rw-h">Runway status</h2>
         <ul className="mt-3 grid gap-2 text-[13px] sm:grid-cols-2">
           {RUNWAYS.map((r) => (
-            <li key={r.id} className="flex min-h-11 items-center justify-between rounded-xl bg-elevated px-3.5 py-2">
+            <li
+              key={r.id}
+              className="flex min-h-11 items-center justify-between rounded-xl bg-elevated px-3.5 py-2"
+            >
               <span className="mono-data font-medium">{r.id}</span>
               <span
                 className={cn(
@@ -253,9 +259,7 @@ function PulsePage() {
       </section>
 
       <section aria-labelledby="th-h" className="surface-card">
-        <h2 id="th-h">
-          Terminal health
-        </h2>
+        <h2 id="th-h">Terminal health</h2>
         <ul className="mt-3 space-y-2">
           {TERMINAL_HEALTH.map((t) => (
             <li key={t.terminal}>
@@ -266,7 +270,8 @@ function PulsePage() {
                     <span className="mono-data">
                       {t.standsAvailable}/{t.standsTotal}
                     </span>{" "}
-                    stands<span className="dot-sep" />
+                    stands
+                    <span className="dot-sep" />
                     <span className="mono-data">{t.securityWaitMin}</span> min
                   </span>
                 </summary>
@@ -274,7 +279,9 @@ function PulsePage() {
                   <p>{t.belts}</p>
                   <p>
                     {t.openActions} open action{t.openActions === 1 ? "" : "s"}
-                    {t.overdueActions > 0 && <span className="text-coral"> · {t.overdueActions} overdue</span>}
+                    {t.overdueActions > 0 && (
+                      <span className="text-coral"> · {t.overdueActions} overdue</span>
+                    )}
                   </p>
                 </div>
               </details>

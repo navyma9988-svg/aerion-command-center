@@ -76,7 +76,10 @@ interface OpsContextValue {
   density: "comfortable" | "compact";
   setDensity: (d: "comfortable" | "compact") => void;
   acknowledge: (id: string) => void;
-  triage: (id: string, patch: { severity: Severity; owner: string; impact: string; note?: string }) => void;
+  triage: (
+    id: string,
+    patch: { severity: Severity; owner: string; impact: string; note?: string },
+  ) => void;
   resolve: (id: string, note: string) => void;
   reopen: (id: string) => void;
   completeAction: (id: string) => void;
@@ -269,20 +272,22 @@ export function OpsProvider({ children }: { children: ReactNode }) {
 
   const notifications = useMemo<OpsNotification[]>(() => {
     const isMention = (e: OpsEvent) => e.id.startsWith("MEN-");
-    return candidates
-      // Direct @mentions always land — they are addressed to a named role.
-      .filter(
-        (e) =>
-          isMention(e) ||
-          (notifPrefs.severities.includes(e.severity ?? "p3") &&
-            notifPrefs.terminals.includes(eventTerminal(e))),
-      )
-      .map((e) => ({
-        id: e.id,
-        event: e,
-        read: readIds.includes(e.id),
-        mention: isMention(e),
-      }));
+    return (
+      candidates
+        // Direct @mentions always land — they are addressed to a named role.
+        .filter(
+          (e) =>
+            isMention(e) ||
+            (notifPrefs.severities.includes(e.severity ?? "p3") &&
+              notifPrefs.terminals.includes(eventTerminal(e))),
+        )
+        .map((e) => ({
+          id: e.id,
+          event: e,
+          read: readIds.includes(e.id),
+          mention: isMention(e),
+        }))
+    );
   }, [candidates, readIds, notifPrefs]);
 
   const mutedCount = candidates.length - notifications.length;
@@ -321,13 +326,7 @@ export function OpsProvider({ children }: { children: ReactNode }) {
   const stamp = useCallback(() => clock.slice(0, 5), [clock]);
 
   const appendAudit = useCallback(
-    (
-      alertId: string,
-      kind: AuditKind,
-      text: string,
-      who: string,
-      mentions?: string[],
-    ) => {
+    (alertId: string, kind: AuditKind, text: string, who: string, mentions?: string[]) => {
       seq.current += 1;
       const n = seq.current;
       setAudit((prev) => [
@@ -395,9 +394,7 @@ export function OpsProvider({ children }: { children: ReactNode }) {
           if (!rule.enabled) continue;
           const hit =
             (rule.id === "runway" && (a.impact === "Runway capacity" || Boolean(a.runway))) ||
-            (rule.id === "sla" &&
-              state === "new" &&
-              (a.escalatesInMin ?? 999) <= slaMinutes) ||
+            (rule.id === "sla" && state === "new" && (a.escalatesInMin ?? 999) <= slaMinutes) ||
             (rule.id === "gates" &&
               a.impact === "Gate availability" &&
               ["C", "D", "E"].includes(String(a.terminal)));
@@ -427,7 +424,8 @@ export function OpsProvider({ children }: { children: ReactNode }) {
   }, [overlays, rawAlerts, audit, baseAudit, escalationRules, slaMinutes]);
 
   const actions = useMemo(
-    () => ACTIONS.map((a) => (completed.includes(a.id) ? { ...a, status: "complete" as const } : a)),
+    () =>
+      ACTIONS.map((a) => (completed.includes(a.id) ? { ...a, status: "complete" as const } : a)),
     [completed],
   );
 
@@ -471,12 +469,7 @@ export function OpsProvider({ children }: { children: ReactNode }) {
   const resolve = useCallback(
     (id: string, note: string) => {
       setOverlays((prev) => ({ ...prev, [id]: { ...prev[id], state: "resolved" } }));
-      appendAudit(
-        id,
-        "resolve",
-        note || "Resolved — no further action required",
-        currentUser,
-      );
+      appendAudit(id, "resolve", note || "Resolved — no further action required", currentUser);
     },
     [appendAudit],
   );

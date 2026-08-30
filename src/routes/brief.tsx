@@ -91,16 +91,13 @@ function BriefPage() {
           most risk.
         </p>
         <p className="mt-3 text-[12px] text-muted-foreground">
-          {overdue.length} overdue · {dueToday.length} due today · {closing.length} awaiting closure ·
-          Stalest: {overdue[1]?.id ?? overdue[0]?.id ?? "—"}, {overdue[1]?.updatedDaysAgo ?? 0} days
-          without update
+          {overdue.length} overdue · {dueToday.length} due today · {closing.length} awaiting closure
+          · Stalest: {overdue[1]?.id ?? overdue[0]?.id ?? "—"}, {overdue[1]?.updatedDaysAgo ?? 0}{" "}
+          days without update
         </p>
       </section>
 
-      <section
-        aria-live="polite"
-        className="min-h-40 surface-card text-sm leading-relaxed"
-      >
+      <section aria-live="polite" className="min-h-40 surface-card text-sm leading-relaxed">
         {phase === "idle" && (
           <p className="text-muted-foreground">Tap generate to write the morning briefing.</p>
         )}
