@@ -531,7 +531,7 @@ function TriageSheet({
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   rows={2}
-                  className="w-full rounded-xl border border-input bg-card p-2 text-sm"
+                  className="w-full resize-none rounded-xl border border-input bg-card p-2 text-sm"
                   placeholder="Crew mobilized, target restore 1800 CT"
                 />
                 <button
@@ -559,7 +559,7 @@ function TriageSheet({
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   rows={2}
-                  className="w-full rounded-xl border border-input bg-card p-2 text-sm"
+                  className="w-full resize-none rounded-xl border border-input bg-card p-2 text-sm"
                   placeholder="Runway 17C inspection complete, returned to service 05:12 CT"
                 />
                 <button
@@ -622,7 +622,7 @@ function TriageSheet({
                 value={operatorNote}
                 onChange={(e) => setOperatorNote(e.target.value)}
                 rows={2}
-                className="w-full rounded-xl border border-input bg-card p-2 text-sm"
+                className="w-full resize-none rounded-xl border border-input bg-card p-2 text-sm"
                 placeholder="@ramp please hold the push on C17 until sweep completes"
               />
               <div className="flex flex-wrap gap-2">

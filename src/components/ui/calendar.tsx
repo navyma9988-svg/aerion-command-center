@@ -140,6 +140,7 @@ function CalendarDayButton({
   className,
   day,
   modifiers,
+  onClick,
   ...props
 }: React.ComponentProps<typeof DayButton>) {
   const defaultClassNames = getDefaultClassNames();
@@ -151,6 +152,8 @@ function CalendarDayButton({
 
   return (
     <Button
+      type="button"
+      onClick={onClick}
       ref={ref}
       variant="ghost"
       size="icon"
