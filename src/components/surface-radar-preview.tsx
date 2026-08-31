@@ -3,12 +3,19 @@ import { FLIGHTS, RUNWAYS } from "@/lib/airfield-data";
 import { PIERS, RUNWAY_GEOM, TAXIWAYS, TOWER, WORLD } from "@/lib/airfield-geo";
 import { cn } from "@/lib/utils";
 
-const TARGETS = [
-  { x: TOWER.x - 172, y: TOWER.y - 128, heading: -16 },
-  { x: TOWER.x + 198, y: TOWER.y - 72, heading: 174 },
-  { x: TOWER.x - 90, y: TOWER.y + 156, heading: 8 },
-  { x: TOWER.x + 252, y: TOWER.y + 126, heading: -142 },
-] as const;
+function previewTarget(flight: (typeof FLIGHTS)[number]) {
+  const runway = RUNWAY_GEOM[flight.runway] ?? RUNWAY_GEOM["17C/35C"]!;
+  const progress = flight.movement === "arrival" ? flight.progress : 1 - flight.progress;
+  const dirX = flight.movement === "arrival" ? runway.x2 - runway.x1 : runway.x1 - runway.x2;
+  const dirY = flight.movement === "arrival" ? runway.y2 - runway.y1 : runway.y1 - runway.y2;
+  const length = Math.hypot(dirX, dirY) || 1;
+  const offset = flight.status === "Taxiing" || flight.status === "At gate" ? 26 : 0;
+  return {
+    x: runway.x1 + (runway.x2 - runway.x1) * progress + (-dirY / length) * offset,
+    y: runway.y1 + (runway.y2 - runway.y1) * progress + (dirX / length) * offset,
+    heading: Number(((Math.atan2(dirX, -dirY) * 180) / Math.PI).toFixed(6)),
+  };
+}
 
 export function SurfaceRadarPreview({
   alertCount,
@@ -30,7 +37,7 @@ export function SurfaceRadarPreview({
       <svg
         viewBox={`0 0 ${WORLD.w} ${WORLD.h}`}
         role="img"
-        aria-label={`DFW surface surveillance preview. ${activeMovements} active movements and ${alertCount} open disruptions.`}
+        aria-label={`Simulated DFW surface overlay on 2022 USGS aerial imagery. ${activeMovements} active movements and ${alertCount} open disruptions.`}
         preserveAspectRatio="xMidYMid slice"
       >
         <defs>
@@ -55,6 +62,16 @@ export function SurfaceRadarPreview({
           </pattern>
         </defs>
 
+        <image
+          href="/dfw-aerial-usgs-naip-2022.webp"
+          x="0"
+          y="0"
+          width={WORLD.w}
+          height={WORLD.h}
+          preserveAspectRatio="none"
+          className="surface-radar__aerial-image"
+        />
+        <rect width={WORLD.w} height={WORLD.h} className="surface-radar__aerial-tint" />
         <rect width={WORLD.w} height={WORLD.h} fill={`url(#${glowId})`} />
         <rect width={WORLD.w} height={WORLD.h} fill={`url(#grid-${uid})`} />
 
@@ -71,13 +88,13 @@ export function SurfaceRadarPreview({
           />
         ))}
 
-        <g opacity="0.34">
+        <g opacity="0.38">
           {TAXIWAYS.map((taxiway, index) => (
             <line
               key={index}
               {...taxiway}
-              stroke="var(--color-muted-foreground)"
-              strokeWidth="5"
+              stroke="var(--color-foreground)"
+              strokeWidth="4"
               strokeLinecap="round"
             />
           ))}
@@ -95,9 +112,16 @@ export function SurfaceRadarPreview({
             <g key={runway.id}>
               <line
                 {...geometry}
+                stroke="var(--color-background)"
+                strokeOpacity="0.74"
+                strokeWidth={geometry.width + 10}
+                strokeLinecap="round"
+              />
+              <line
+                {...geometry}
                 stroke="var(--color-foreground)"
-                strokeOpacity="0.12"
-                strokeWidth={geometry.width + 7}
+                strokeOpacity="0.56"
+                strokeWidth={geometry.width}
                 strokeLinecap="round"
               />
               <line
@@ -167,12 +191,21 @@ export function SurfaceRadarPreview({
           strokeWidth="2"
         />
 
-        {TARGETS.map((target, index) => {
-          const flight = FLIGHTS[index];
-          if (!flight) return null;
+        {FLIGHTS.map((flight) => {
+          const target = previewTarget(flight);
           const tone = flight.delayMin > 15 ? "var(--color-coral)" : "var(--color-cyan)";
           return (
             <g key={flight.id} transform={`rotate(${target.heading} ${target.x} ${target.y})`}>
+              <circle
+                cx={target.x}
+                cy={target.y}
+                r="17"
+                fill="none"
+                stroke={tone}
+                strokeOpacity="0.24"
+                strokeWidth="2"
+                className="surface-radar__target-halo"
+              />
               <path
                 d={`M ${target.x} ${target.y - 11} L ${target.x + 8} ${target.y + 9} L ${target.x} ${target.y + 4} L ${target.x - 8} ${target.y + 9} Z`}
                 fill={tone}
@@ -193,12 +226,13 @@ export function SurfaceRadarPreview({
 
       <div className="surface-radar__topline">
         <span className="surface-radar__live">
-          <span aria-hidden /> LIVE SURFACE
+          <span aria-hidden /> SIM SURFACE
         </span>
-        <span className="mono-data">DFW · ASDE-X</span>
+        <span className="mono-data">AERIAL · N↑</span>
       </div>
       <div className="surface-radar__telemetry" aria-hidden="true">
         <span className="mono-data">TRK {activeMovements.toString().padStart(2, "0")}</span>
+        <span className="mono-data">USGS · 2022</span>
         <span className={cn("mono-data", degraded ? "text-coral" : "text-success")}>
           {degraded ? `${alertCount} ALERT` : "NOMINAL"}
         </span>

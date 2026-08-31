@@ -191,7 +191,7 @@ export function QuickActionsDock() {
         </div>
       ) : null}
 
-      {pathname !== "/map" ? (
+      {pathname !== "/map" && pathname !== "/" ? (
         <button
           type="button"
           onClick={() => setOpen((current) => !current)}

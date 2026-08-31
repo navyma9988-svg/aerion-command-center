@@ -2,7 +2,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus, Crosshair } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FLIGHTS, RUNWAYS, TERMINAL_HEALTH, WIND, type Flight } from "@/lib/airfield-data";
-import { PIERS, RUNWAY_GEOM, TAXIWAYS, TOWER, WORLD } from "@/lib/airfield-geo";
+import { PIERS, RUNWAY_GEOM, SCALE, TAXIWAYS, TOWER, WORLD } from "@/lib/airfield-geo";
 
 /**
  * ASDE-X style ground surveillance display for DFW, drawn from surveyed
@@ -47,7 +47,8 @@ function readStoredView(): ViewState {
   try {
     const raw = window.sessionStorage.getItem(VIEW_KEY);
     if (!raw) return initialView();
-    const v = JSON.parse(raw) as ViewState;
+    const v = JSON.parse(raw) as ViewState & { mobile?: boolean };
+    if (v.mobile !== window.innerWidth < 640) return initialView();
     if (typeof v?.k === "number" && typeof v.x === "number" && typeof v.y === "number") return v;
   } catch {
     /* ignore */
@@ -94,6 +95,7 @@ export function AirfieldRadar({
   const smoothTimer = useRef<number | null>(null);
   const [smoothZoom, setSmoothZoom] = useState(false);
   const [view, setView] = useState<ViewState>(DEFAULT_VIEW);
+  const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(
     () => () => {
@@ -106,6 +108,15 @@ export function AirfieldRadar({
   useEffect(() => {
     setView(readStoredView());
   }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    if (!media) return;
+    const update = () => setReducedMotion(media.matches);
+    update();
+    media.addEventListener?.("change", update);
+    return () => media.removeEventListener?.("change", update);
+  }, []);
   const viewRef = useRef(view);
   viewRef.current = view;
 
@@ -113,7 +124,10 @@ export function AirfieldRadar({
   useEffect(() => {
     const id = window.setTimeout(() => {
       try {
-        window.sessionStorage.setItem(VIEW_KEY, JSON.stringify(view));
+        window.sessionStorage.setItem(
+          VIEW_KEY,
+          JSON.stringify({ ...view, mobile: window.innerWidth < 640 }),
+        );
       } catch {
         /* ignore */
       }
@@ -121,9 +135,16 @@ export function AirfieldRadar({
     return () => window.clearTimeout(id);
   }, [view]);
 
+  useEffect(() => {
+    const breakpoint = window.matchMedia("(min-width: 640px)");
+    const resetForViewport = () => setView(breakpoint.matches ? DEFAULT_VIEW : initialView());
+    breakpoint.addEventListener?.("change", resetForViewport);
+    return () => breakpoint.removeEventListener?.("change", resetForViewport);
+  }, []);
+
   // rAF-driven sweep: mutates the DOM directly so it never re-renders React
   useEffect(() => {
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    if (reducedMotion) return;
     let frame = 0;
     const start = performance.now();
     const tick = (now: number) => {
@@ -133,7 +154,7 @@ export function AirfieldRadar({
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, []);
+  }, [reducedMotion]);
 
   const clamp = useCallback((k: number, x: number, y: number) => {
     const kk = Math.min(6, Math.max(1, k));
@@ -278,6 +299,8 @@ export function AirfieldRadar({
       return;
     }
 
+    if (reducedMotion) return;
+
     // momentum
     let vx = d.vx * 14;
     let vy = d.vy * 14;
@@ -333,6 +356,28 @@ export function AirfieldRadar({
     });
   }, [planes, filters, runwayStatus]);
 
+  const scaleMeters = view.k <= 1.4 ? 1000 : 500;
+  const scaleWidth = `${Math.min(32, (scaleMeters * SCALE * view.k * 100) / WORLD.w)}%`;
+
+  const panWithKeyboard = (event: React.KeyboardEvent<SVGSVGElement>) => {
+    if (event.target !== event.currentTarget) return;
+    const step = 64 / viewRef.current.k;
+    const delta =
+      event.key === "ArrowLeft"
+        ? { x: step, y: 0 }
+        : event.key === "ArrowRight"
+          ? { x: -step, y: 0 }
+          : event.key === "ArrowUp"
+            ? { x: 0, y: step }
+            : event.key === "ArrowDown"
+              ? { x: 0, y: -step }
+              : null;
+    if (!delta) return;
+    event.preventDefault();
+    stopMomentum();
+    setView((current) => clamp(current.k, current.x + delta.x, current.y + delta.y));
+  };
+
   // live region announcements for status / selection changes
   const [announcement, setAnnouncement] = useState("");
   const statusKey = RUNWAYS.map((r) => `${r.id}:${runwayStatus.get(r.id) ?? "active"}`).join(",");
@@ -374,14 +419,16 @@ export function AirfieldRadar({
         ref={svgRef}
         viewBox={`0 0 ${WORLD.w} ${WORLD.h}`}
         preserveAspectRatio="xMidYMid meet"
-        className="h-[48dvh] w-full touch-none select-none sm:h-auto sm:max-h-[74dvh]"
+        className="h-[57dvh] min-h-[430px] w-full touch-none select-none outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:h-auto sm:min-h-0 sm:max-h-[74dvh]"
         style={{
           aspectRatio: `${WORLD.w} / ${WORLD.h}`,
           background:
             "radial-gradient(120% 90% at 50% 45%, color-mix(in oklab, var(--color-cyan) 7%, transparent), transparent 70%)",
         }}
         role="group"
-        aria-label={`DFW ${isAerial ? "aerial operations map" : "ground surveillance display"}, north up, with overlays drawn to surveyed runway geometry. Contains seven runways, five terminal horseshoes and active aircraft. Drag to pan, pinch or scroll to zoom. Tab moves through runways, terminals and aircraft; Enter or Space selects a terminal or aircraft.`}
+        tabIndex={0}
+        aria-label={`Simulated DFW ${isAerial ? "aerial operations map over 2022 USGS imagery" : "ground surveillance display"}, north up, with overlays drawn to surveyed runway geometry. Contains seven runways, five terminal horseshoes and active aircraft. Drag or use Arrow keys to pan; pinch or scroll to zoom. Tab moves through runways, terminals and aircraft; Enter or Space selects a terminal or aircraft.`}
+        onKeyDown={panWithKeyboard}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endPointer}
@@ -445,6 +492,15 @@ export function AirfieldRadar({
             // Normalize the rendered rotation string across browser and server math
             // implementations; surveyed runway coordinates remain untouched.
             const ang = Number(((Math.atan2(g.y2 - g.y1, g.x2 - g.x1) * 180) / Math.PI).toFixed(6));
+            const runwayLength = Math.hypot(g.x2 - g.x1, g.y2 - g.y1) || 1;
+            const ux = (g.x2 - g.x1) / runwayLength;
+            const uy = (g.y2 - g.y1) / runwayLength;
+            const px = -uy;
+            const py = ux;
+            const thresholdOffset = 28;
+            const thresholdHalf = Math.max(8, g.width * 0.68);
+            const thresholdA = { x: g.x1 + ux * thresholdOffset, y: g.y1 + uy * thresholdOffset };
+            const thresholdB = { x: g.x2 - ux * thresholdOffset, y: g.y2 - uy * thresholdOffset };
             return (
               <g
                 key={r.id}
@@ -460,6 +516,16 @@ export function AirfieldRadar({
                 className="outline-none focus-visible:[&_.rwy]:stroke-cyan"
               >
                 <line
+                  x1={g.x1}
+                  y1={g.y1}
+                  x2={g.x2}
+                  y2={g.y2}
+                  stroke="var(--color-background)"
+                  strokeOpacity={isAerial ? 0.82 : 0.36}
+                  strokeWidth={g.width + 8}
+                  strokeLinecap="round"
+                />
+                <line
                   className="rwy"
                   x1={g.x1}
                   y1={g.y1}
@@ -467,7 +533,7 @@ export function AirfieldRadar({
                   y2={g.y2}
                   style={{
                     stroke: isAerial
-                      ? "color-mix(in oklab, var(--color-foreground) 58%, var(--color-background))"
+                      ? "color-mix(in oklab, var(--color-foreground) 42%, var(--color-background))"
                       : "color-mix(in oklab, var(--color-foreground) 17%, var(--color-background))",
                   }}
                   strokeWidth={g.width}
@@ -523,7 +589,7 @@ export function AirfieldRadar({
                     status === "closed" && "stroke-coral",
                   )}
                 >
-                  {status === "active" && (
+                  {status === "active" && !reducedMotion && (
                     <animate
                       attributeName="stroke-dashoffset"
                       from="38"
@@ -533,6 +599,24 @@ export function AirfieldRadar({
                     />
                   )}
                 </line>
+                {[thresholdA, thresholdB].map((threshold, index) => (
+                  <line
+                    key={index}
+                    x1={threshold.x - px * thresholdHalf}
+                    y1={threshold.y - py * thresholdHalf}
+                    x2={threshold.x + px * thresholdHalf}
+                    y2={threshold.y + py * thresholdHalf}
+                    stroke={
+                      status === "closed"
+                        ? "var(--color-coral)"
+                        : status === "notam"
+                          ? "var(--color-amber)"
+                          : "var(--color-foreground)"
+                    }
+                    strokeWidth={isAerial ? 3.2 : 2.4}
+                    strokeOpacity={status === "active" ? 0.72 : 0.94}
+                  />
+                ))}
                 {status === "active" && (
                   <polygon
                     points={`${g.x1},${g.y1} ${g.x1 - 20},${g.y1 - 46} ${g.x1 + 20},${g.y1 - 46}`}
@@ -540,32 +624,50 @@ export function AirfieldRadar({
                     transform={`rotate(${ang - 90} ${g.x1} ${g.y1})`}
                   />
                 )}
-                <text
-                  x={g.x1}
-                  y={g.y1 - 12}
-                  textAnchor="middle"
-                  className={cn(
-                    "fill-muted-foreground text-[15px]",
-                    status === "closed" && "fill-coral",
-                  )}
-                  style={{ fontFamily: "var(--font-mono)" }}
-                  transform={`rotate(${ang - 90} ${g.x1} ${g.y1})`}
-                >
-                  {a}
-                </text>
-                <text
-                  x={g.x2}
-                  y={g.y2 + 22}
-                  textAnchor="middle"
-                  className={cn(
-                    "fill-muted-foreground text-[15px]",
-                    status === "closed" && "fill-coral",
-                  )}
-                  style={{ fontFamily: "var(--font-mono)" }}
-                  transform={`rotate(${ang - 90} ${g.x2} ${g.y2})`}
-                >
-                  {b}
-                </text>
+                <g transform={`rotate(${ang - 90} ${g.x1} ${g.y1})`}>
+                  <rect
+                    x={g.x1 - 17}
+                    y={g.y1 - 34}
+                    width="34"
+                    height="23"
+                    rx="6"
+                    className="radar-runway-label"
+                  />
+                  <text
+                    x={g.x1}
+                    y={g.y1 - 18}
+                    textAnchor="middle"
+                    className={cn(
+                      "fill-foreground text-[13px] font-bold",
+                      status === "closed" && "fill-coral",
+                    )}
+                    style={{ fontFamily: "var(--font-mono)" }}
+                  >
+                    {a}
+                  </text>
+                </g>
+                <g transform={`rotate(${ang - 90} ${g.x2} ${g.y2})`}>
+                  <rect
+                    x={g.x2 - 17}
+                    y={g.y2 + 9}
+                    width="34"
+                    height="23"
+                    rx="6"
+                    className="radar-runway-label"
+                  />
+                  <text
+                    x={g.x2}
+                    y={g.y2 + 25}
+                    textAnchor="middle"
+                    className={cn(
+                      "fill-foreground text-[13px] font-bold",
+                      status === "closed" && "fill-coral",
+                    )}
+                    style={{ fontFamily: "var(--font-mono)" }}
+                  >
+                    {b}
+                  </text>
+                </g>
               </g>
             );
           })}
@@ -746,6 +848,23 @@ export function AirfieldRadar({
             const tone =
               f.delayMin > 15 ? "text-coral" : f.delayMin > 0 ? "text-amber" : "text-cyan";
             const select = () => onFocusFlight(f);
+            const headingRad = (heading * Math.PI) / 180;
+            const forwardX = Math.sin(headingRad);
+            const forwardY = -Math.cos(headingRad);
+            const detailedLabel = view.k >= 2.6;
+            const detailLine =
+              f.status === "At gate" || f.status === "Taxiing"
+                ? `${f.stand} · T${f.terminal}`
+                : `${f.runway.split("/")[0]} · ${f.status}`;
+            const labelWidth = Math.max(
+              66,
+              f.callsign.length * 8 + 16,
+              detailedLabel ? detailLine.length * 6.4 + 14 : 0,
+            );
+            const labelOnLeft = x * view.k + view.x > WORLD.w * 0.66;
+            const labelX = labelOnLeft ? x - labelWidth - 18 : x + 18;
+            const labelY = y - (detailedLabel ? 18 : 10);
+            const targetRadius = Math.max(10, 72 / view.k);
             return (
               <g
                 key={f.id}
@@ -766,11 +885,33 @@ export function AirfieldRadar({
                   }
                 }}
               >
+                <g className="radar-track-history" aria-hidden>
+                  {[1, 2, 3].map((step) => (
+                    <circle
+                      key={step}
+                      cx={x - forwardX * (18 + step * 14)}
+                      cy={y - forwardY * (18 + step * 14)}
+                      r={Math.max(1.6, 3.4 / view.k)}
+                      fill="currentColor"
+                      opacity={0.3 - step * 0.065}
+                    />
+                  ))}
+                  <line
+                    x1={x + forwardX * 12}
+                    y1={y + forwardY * 12}
+                    x2={x + forwardX * 60}
+                    y2={y + forwardY * 60}
+                    stroke="currentColor"
+                    strokeWidth={Math.max(1.2, 2.2 / view.k)}
+                    strokeLinecap="round"
+                    opacity="0.34"
+                  />
+                </g>
                 <circle
                   className="hit fill-transparent stroke-transparent"
                   cx={x}
                   cy={y}
-                  r="78"
+                  r={targetRadius}
                   strokeWidth="3"
                   pointerEvents="all"
                 />
@@ -804,34 +945,56 @@ export function AirfieldRadar({
                       cx={x}
                       cy={y}
                       r="22"
-                      className="fill-none stroke-cyan"
+                      className="radar-target-focus fill-none stroke-cyan"
                       strokeWidth="2.5"
                     />
                   )}
                 </g>
+                <line
+                  x1={x + (labelOnLeft ? -8 : 8)}
+                  y1={y}
+                  x2={labelOnLeft ? labelX + labelWidth : labelX}
+                  y2={labelY + (detailedLabel ? 17 : 10)}
+                  className="stroke-muted-foreground"
+                  strokeWidth="1"
+                  opacity="0.48"
+                />
+                <rect
+                  x={labelX}
+                  y={labelY}
+                  width={labelWidth}
+                  height={detailedLabel ? 34 : 21}
+                  rx="6"
+                  className="radar-label-plate"
+                />
                 <text
-                  x={x + 16}
-                  y={y - 3}
-                  className="fill-current text-[14px]"
+                  x={labelX + 7}
+                  y={labelY + 14}
+                  className="fill-current text-[12px] font-semibold"
                   style={{ fontFamily: "var(--font-mono)" }}
                 >
                   {f.callsign}
                 </text>
-                <text
-                  x={x + 16}
-                  y={y + 12}
-                  className="fill-muted-foreground text-[12px]"
-                  style={{ fontFamily: "var(--font-mono)" }}
-                >
-                  {f.status === "At gate" || f.status === "Taxiing"
-                    ? f.stand
-                    : f.runway.split("/")[0]}
-                </text>
+                {detailedLabel && (
+                  <text
+                    x={labelX + 7}
+                    y={labelY + 27}
+                    className="fill-muted-foreground text-[10px]"
+                    style={{ fontFamily: "var(--font-mono)" }}
+                  >
+                    {detailLine}
+                  </text>
+                )}
               </g>
             );
           })}
         </g>
       </svg>
+
+      <div className="radar-compass pointer-events-none absolute right-3 top-3" aria-hidden>
+        <span>N</span>
+        <span className="radar-compass__arrow">↑</span>
+      </div>
 
       {/* touch controls */}
       <div className="radar-controls absolute bottom-3 right-3 flex flex-col gap-2">
@@ -869,14 +1032,19 @@ export function AirfieldRadar({
 
       <p className="radar-data-block mono-data pointer-events-none absolute left-3 top-3 rounded-lg bg-background/72 px-2.5 py-1.5 text-[10px] text-muted-foreground backdrop-blur-md">
         <span className={isAerial ? "text-amber" : "text-cyan"}>
-          {isAerial ? "AERIAL OPS" : "ASDE-X"}
+          {isAerial ? "SIM TRACKS" : "ASDE-X SIM"}
         </span>{" "}
-        · {WIND.flow} · {Math.round(view.k * 10) / 10}×
+        · TRK {visiblePlanes.length.toString().padStart(2, "0")} · {WIND.flow} ·{" "}
+        {Math.round(view.k * 10) / 10}×
       </p>
       {isAerial && (
-        <p className="radar-attribution mono-data pointer-events-none absolute bottom-3 left-3 rounded-md bg-background/68 px-2 py-1 text-[9px] text-muted-foreground backdrop-blur-md">
-          USGS · NAIP 2022
-        </p>
+        <div className="radar-cartography mono-data pointer-events-none absolute bottom-3 left-3 right-3 text-muted-foreground">
+          <p className="radar-attribution">USGS · NAIP 2022</p>
+          <p className="radar-scale" aria-hidden>
+            <span className="radar-scale__line" style={{ width: scaleWidth }} />
+            <span>{scaleMeters === 1000 ? "1 km" : `${scaleMeters} m`}</span>
+          </p>
+        </div>
       )}
     </div>
   );
@@ -926,29 +1094,31 @@ const RadarBackdrop = memo(function RadarBackdrop({
         opacity={isAerial ? 0.035 : 0.08}
       />
 
-      <g ref={sweepRef} opacity={isAerial ? 0.42 : 1}>
+      <g ref={sweepRef} opacity={isAerial ? 0.08 : 1}>
         <path
           d={`M ${TOWER.x},${TOWER.y} L ${TOWER.x + 580},${TOWER.y - 340} A 670,670 0 0 1 ${TOWER.x + 580},${TOWER.y + 340} Z`}
           fill="url(#sweep-grad)"
         />
       </g>
 
-      {!isAerial &&
-        TAXIWAYS.map((t, i) => (
-          <line
-            key={i}
-            x1={t.x1}
-            y1={t.y1}
-            x2={t.x2}
-            y2={t.y2}
-            style={{
-              stroke: "color-mix(in oklab, var(--color-foreground) 12%, var(--color-background))",
-            }}
-            strokeWidth="7"
-            strokeLinecap="round"
-            opacity="0.9"
-          />
-        ))}
+      {TAXIWAYS.map((t, i) => (
+        <line
+          key={i}
+          x1={t.x1}
+          y1={t.y1}
+          x2={t.x2}
+          y2={t.y2}
+          style={{
+            stroke: isAerial
+              ? "color-mix(in oklab, var(--color-foreground) 30%, var(--color-background))"
+              : "color-mix(in oklab, var(--color-foreground) 12%, var(--color-background))",
+          }}
+          strokeWidth={isAerial ? 3.5 : 7}
+          strokeLinecap="round"
+          strokeDasharray={isAerial ? "12 14" : undefined}
+          opacity={isAerial ? 0.5 : 0.9}
+        />
+      ))}
     </g>
   );
 });

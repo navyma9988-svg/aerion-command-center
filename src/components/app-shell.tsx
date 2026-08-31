@@ -106,8 +106,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="flex min-w-0 items-center gap-2.5">
             <BrandMark className="size-9 shrink-0" />
             <div className="min-w-0">
-              <p className="truncate text-[15px] font-semibold leading-tight tracking-tight">
-                DFW Airfield Command
+              <p
+                aria-label="DFW Airfield Command"
+                className="truncate text-[15px] font-semibold leading-tight tracking-tight"
+              >
+                <span className="sm:hidden">DFW Command</span>
+                <span className="hidden sm:inline">DFW Airfield Command</span>
               </p>
               <p className="truncate text-[12px] leading-tight text-muted-foreground">
                 {AIRPORT.code ?? "DFW"} · <span className="mono-data">{clock}</span>{" "}

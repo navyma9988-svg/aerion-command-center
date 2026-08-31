@@ -49,10 +49,10 @@ Native select and time popups are intentional where the operating-system popup i
 
 - Each route owns an honest `{Page} — DFW Airfield Command` title through its route head metadata.
 - Mobile uses the safe-area bottom dock; desktop uses the persistent icon rail. The current route remains programmatically marked.
-- Drawers are the canonical mobile detail surface for terminals and flights, close with Escape through the maintained primitive, and restore focus through that primitive.
+- Drawers are the canonical mobile detail surface for terminals, flights, and secondary Map controls, close with Escape through the maintained primitive, and restore focus through that primitive.
 - Query-backed Map focus, terminal, and overlay state remains unchanged and restorable. The Aerial Ops/ASDE-X display preference is session-scoped presentation state only.
-- The Map keeps visible non-drag zoom and recenter controls. Tab reaches runways, terminals, aircraft, and controls; Enter/Space activates terminals and aircraft.
-- Contextual quick actions use the shared mission launcher. On the Map, its trigger lives in the page header so it never obscures runway or aircraft content; the same actions and feedback remain available.
+- The Map keeps visible non-drag zoom and recenter controls. Tab reaches runways, terminals, aircraft, and controls; Enter/Space activates terminals and aircraft. A focused map accepts arrow-key pan as the non-drag equivalent.
+- Contextual quick actions use the shared mission launcher. On Map and Pulse, its trigger lives in page chrome so it never obscures runway, aircraft, or hero content; the same actions and feedback remain available.
 - Persistent chrome and safe-area padding must not obscure focused content. Horizontal filter rails visibly scroll rather than clipping or hiding their scrollbar.
 
 ## Overlays and feedback
@@ -64,12 +64,12 @@ Native select and time popups are intentional where the operating-system popup i
 ## Async and resilience
 
 - The demo is deterministic and locally simulated. Background feed refresh preserves visible content and never replaces the Map imagery with a network-only dependency.
-- Aerial imagery is bundled. If it cannot render, the surveyed vector, status, filtering, keyboard, and detail interactions remain usable as the fallback display.
+- Aerial imagery is bundled and its `USGS · 2022` date stays visible. Aircraft are explicitly labeled `SIM` or `SIM TRACKS`; the demo never implies that cached imagery or deterministic movement is current satellite surveillance. If imagery cannot render, the surveyed vector, status, filtering, keyboard, and detail interactions remain usable as the fallback display.
 - The task introduces no mutation, retry, conflict, permission, or external-side-effect policy changes.
 
 ## Verification
 
 - Required static checks: `npm run build`, `bun x tsc --noEmit`, Frontend Design Premium strict audit, and `designmd lint DESIGN.md`.
 - Browser matrix: 390×844 and 1280×720, Aerial Ops and ASDE-X, dark theme, keyboard focus, no horizontal page overflow, visible scrollbar styling, 44px targets, and console error inspection.
-- Reduced-motion behavior is owned by the global media query and must cover launch, route, dock, shimmer, brand sweep, and radar motion.
+- Reduced-motion behavior is owned by the global media query and must cover launch, route, dock, shimmer, brand sweep, SVG radar motion, track pulses, and inertial pan.
 - Canonical sibling flows: existing Map focus/detail drawers, Alert filter rails, and app-shell navigation.

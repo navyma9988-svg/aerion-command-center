@@ -397,9 +397,9 @@
 
 .surface-radar {
   position: relative;
-  min-height: 184px;
+  min-height: 216px;
   overflow: hidden;
-  border: 1px solid color-mix(in oklab, var(--color-cyan) 14%, var(--color-border));
+  border: 1px solid color-mix(in oklab, var(--color-foreground) 9%, var(--color-border));
   border-radius: var(--radius-lg);
   background: var(--color-background);
   box-shadow:
@@ -418,7 +418,7 @@
     linear-gradient(to bottom, transparent 50%, color-mix(in oklab, white 4%, transparent) 50%) 0
       0 / 100% 4px,
     radial-gradient(circle at 50% 48%, transparent 42%, var(--color-background) 118%);
-  opacity: 0.62;
+  opacity: 0.22;
 }
 
 .surface-radar > svg {
@@ -428,8 +428,26 @@
   height: 100%;
 }
 
+.surface-radar__aerial-image {
+  opacity: 0.98;
+  filter: saturate(0.7) contrast(1.14) brightness(0.62);
+}
+
+.surface-radar__aerial-tint {
+  fill: var(--color-background);
+  opacity: 0.18;
+  mix-blend-mode: multiply;
+}
+
 .surface-radar__sweep {
-  animation: radar-sweep 8.5s linear infinite;
+  opacity: 0.58;
+  animation: radar-sweep 12s linear infinite;
+}
+
+.surface-radar__target-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: surface-target-pulse 3.6s ease-in-out infinite;
 }
 
 .surface-radar__topline,
@@ -475,6 +493,26 @@
 
 .surface-radar__action {
   z-index: 3;
+}
+
+.light .surface-radar__aerial-image {
+  filter: saturate(0.78) contrast(1.06) brightness(0.94);
+}
+
+.light .surface-radar__aerial-tint {
+  opacity: 0.035;
+}
+
+@keyframes surface-target-pulse {
+  0%,
+  100% {
+    opacity: 0.22;
+    transform: scale(0.82);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.14);
+  }
 }
 
 .triage-status-grid {
@@ -884,8 +922,12 @@
 
 .map-segment-control,
 .map-filter-control {
+  display: inline-flex;
   min-width: 0;
   min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.38rem;
   padding-inline: 0.45rem;
   color: var(--color-muted-foreground);
   background: color-mix(in oklab, var(--color-elevated) 58%, var(--color-card));
@@ -902,9 +944,18 @@
 }
 
 .map-filter-control[aria-pressed="true"] {
-  color: var(--color-cyan);
-  background: color-mix(in oklab, var(--color-cyan) 7%, var(--color-elevated));
-  box-shadow: inset 0 -2px 0 color-mix(in oklab, var(--color-cyan) 62%, transparent);
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 5%, var(--color-elevated));
+}
+
+.map-filter-control[aria-pressed="true"]::before {
+  content: "";
+  width: 0.34rem;
+  height: 0.34rem;
+  flex: none;
+  border-radius: 999px;
+  background: var(--color-cyan);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--color-cyan) 55%, transparent);
 }
 
 @keyframes filter-bank-in {
@@ -966,7 +1017,7 @@
   border: 1px solid var(--color-border);
   border-radius: 18px;
   padding: 0.25rem;
-  padding-right: 0.85rem;
+  padding-right: 0.25rem;
   background: color-mix(in oklab, var(--color-card) 90%, transparent);
   box-shadow: var(--hairline);
 }
@@ -975,10 +1026,36 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.2rem;
-  min-width: min(100%, 268px);
+  min-width: 0;
+  max-width: 222px;
+  flex: 1;
   padding: 0.2rem;
   border-radius: 15px;
   background: color-mix(in oklab, var(--color-background) 62%, transparent);
+}
+
+.map-control-trigger {
+  min-width: 0;
+  flex: none;
+  border-color: transparent;
+}
+
+.map-control-trigger__count {
+  display: grid;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  place-items: center;
+  border: 1px solid color-mix(in oklab, var(--color-cyan) 22%, var(--color-border));
+  border-radius: 0.45rem;
+  color: var(--color-cyan);
+  background: color-mix(in oklab, var(--color-cyan) 8%, transparent);
+  font-size: 0.625rem;
+}
+
+@media (min-width: 640px) {
+  .map-mode-switch {
+    max-width: 268px;
+  }
 }
 
 .map-mode-switch button {
@@ -988,10 +1065,11 @@
   justify-content: center;
   gap: 0.45rem;
   border-radius: 12px;
-  padding-inline: 0.85rem;
+  padding-inline: 0.65rem;
   color: var(--color-muted-foreground);
   font-size: 12px;
   font-weight: 650;
+  white-space: nowrap;
 }
 
 .map-mode-switch .map-mode-switch__active {
@@ -1405,6 +1483,17 @@
     inset 0 0 120px 18px color-mix(in oklab, var(--color-background) 28%, transparent);
 }
 
+.radar-frame[data-display="aerial"] {
+  background-image:
+    linear-gradient(
+      color-mix(in oklab, var(--color-background) 52%, transparent),
+      color-mix(in oklab, var(--color-background) 52%, transparent)
+    ),
+    url("/dfw-aerial-usgs-naip-2022.webp");
+  background-position: center;
+  background-size: cover;
+}
+
 .radar-frame::after {
   content: "";
   position: absolute;
@@ -1427,7 +1516,7 @@
 
 .radar-aerial-image {
   opacity: 0.96;
-  filter: saturate(0.64) contrast(1.16) brightness(0.58);
+  filter: saturate(0.7) contrast(1.14) brightness(0.68);
 }
 
 .radar-aerial-tint {
@@ -1457,10 +1546,105 @@
 
 .radar-data-block {
   z-index: 3;
+  border: 1px solid color-mix(in oklab, var(--color-foreground) 8%, transparent);
+  letter-spacing: 0.035em;
+}
+
+.radar-compass {
+  z-index: 3;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid color-mix(in oklab, var(--color-foreground) 9%, var(--color-border));
+  border-radius: 50%;
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-background) 76%, transparent);
+  box-shadow:
+    0 8px 20px -12px color-mix(in oklab, black 70%, transparent),
+    inset 0 1px 0 color-mix(in oklab, white 6%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1;
+  backdrop-filter: blur(12px);
+}
+
+.radar-compass > span:first-child {
+  position: absolute;
+  top: 7px;
+}
+
+.radar-compass__arrow {
+  color: var(--color-amber);
+  font-size: 1.35rem;
+  transform: translateY(5px);
+}
+
+.radar-cartography {
+  z-index: 3;
+  display: grid;
+  gap: 0.35rem;
+  justify-items: start;
 }
 
 .radar-attribution {
-  z-index: 3;
+  border: 1px solid color-mix(in oklab, var(--color-foreground) 7%, transparent);
+  border-radius: 0.42rem;
+  padding: 0.2rem 0.42rem;
+  background: color-mix(in oklab, var(--color-background) 72%, transparent);
+  font-size: 0.55rem;
+  letter-spacing: 0.04em;
+  backdrop-filter: blur(10px);
+}
+
+.radar-scale {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.38rem;
+  font-size: 0.55rem;
+}
+
+.radar-scale__line {
+  position: relative;
+  display: block;
+  min-width: 1.8rem;
+  max-width: 8rem;
+  height: 5px;
+  border-right: 1px solid var(--color-foreground);
+  border-bottom: 1px solid var(--color-foreground);
+  border-left: 1px solid var(--color-foreground);
+  filter: drop-shadow(0 1px 2px var(--color-background));
+}
+
+.radar-runway-label,
+.radar-label-plate {
+  fill: color-mix(in oklab, var(--color-background) 88%, transparent);
+  stroke: color-mix(in oklab, var(--color-foreground) 13%, transparent);
+  stroke-width: 1px;
+}
+
+.radar-label-plate {
+  filter: drop-shadow(0 4px 8px color-mix(in oklab, black 62%, transparent));
+}
+
+.radar-target-focus {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: radar-target-lock 2.8s ease-in-out infinite;
+}
+
+@keyframes radar-target-lock {
+  0%,
+  100% {
+    opacity: 0.58;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
 }
 
 @media (forced-colors: active) {

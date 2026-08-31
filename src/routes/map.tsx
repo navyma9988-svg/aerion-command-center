@@ -1,10 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useOps } from "@/lib/ops-store";
 import { FLIGHTS, RUNWAYS, TERMINAL_HEALTH, WIND, type Flight } from "@/lib/airfield-data";
 import { AirfieldRadar, ALL_FILTERS, type RadarFilters } from "@/components/airfield-radar";
 import { cn } from "@/lib/utils";
-import { Plane, Crosshair, List, Radar, Satellite, Zap } from "lucide-react";
+import { Layers3, List, Plane, Radar, Satellite, Zap } from "lucide-react";
 import {
   Drawer,
   DrawerContent,
@@ -62,6 +62,8 @@ function MapPage() {
   const { focus, terminal, layer } = Route.useSearch();
   const navigate = useNavigate({ from: "/map" });
   const [listView, setListView] = useState(false);
+  const [controlPanelOpen, setControlPanelOpen] = useState(false);
+  const controlTriggerRef = useRef<HTMLButtonElement>(null);
   const [displayMode, setDisplayMode] = useState<DisplayMode>(() => {
     if (typeof window === "undefined") return "aerial";
     return window.sessionStorage.getItem(DISPLAY_KEY) === "surveillance"
@@ -79,6 +81,7 @@ function MapPage() {
   });
 
   const focused = FLIGHTS.find((f) => f.callsign === focus) ?? null;
+  const activeFilterCount = Object.values(filters).filter(Boolean).length;
   const setSearch = (patch: Record<string, string>) =>
     navigate({ search: (p) => ({ ...p, ...patch }) });
 
@@ -147,7 +150,7 @@ function MapPage() {
               aria-hidden
               className="size-1.5 rounded-full bg-success shadow-[0_0_10px_var(--color-success)]"
             />
-            Live field view
+            Simulated field view
           </p>
           <h1 className="text-[26px] font-bold tracking-tight">Airfield map</h1>
           <p className="mono-data text-xs text-muted-foreground">
@@ -184,7 +187,7 @@ function MapPage() {
               onClick={() => setDisplayMode("aerial")}
               className={cn("press", displayMode === "aerial" && "map-mode-switch__active")}
             >
-              <Satellite aria-hidden className="size-4" /> Aerial ops
+              <Satellite aria-hidden className="size-4" /> Aerial
             </button>
             <button
               type="button"
@@ -195,56 +198,23 @@ function MapPage() {
               <Radar aria-hidden className="size-4" /> ASDE-X
             </button>
           </div>
-          <p className="hidden text-[11px] text-muted-foreground sm:block">
-            Surveyed vectors · north up · local imagery
-          </p>
+          <OpsButton
+            ref={controlTriggerRef}
+            onClick={() => setControlPanelOpen(true)}
+            intent="neutral"
+            emphasis="ghost"
+            size="compact"
+            className="map-control-trigger"
+            aria-label={`Open map controls. ${layer} overlay and ${activeFilterCount} traffic filters active.`}
+          >
+            <Layers3 aria-hidden />
+            <span>Controls</span>
+            <span className="map-control-trigger__count mono-data" aria-hidden>
+              {activeFilterCount}
+            </span>
+          </OpsButton>
         </div>
       )}
-
-      <div className="map-control-grid" role="group" aria-label="Map overlays">
-        {(
-          [
-            { k: "gates", label: "Gates" },
-            { k: "actions", label: "Open actions" },
-            { k: "work", label: "Construction" },
-          ] as { k: Layer; label: string }[]
-        ).map((l) => (
-          <button
-            key={l.k}
-            type="button"
-            aria-pressed={layer === l.k}
-            onClick={() => setSearch({ layer: l.k })}
-            className="map-segment-control"
-          >
-            {l.label}
-          </button>
-        ))}
-      </div>
-
-      {(terminal || focus) && (
-        <OpsButton
-          onClick={() => setSearch({ terminal: "", focus: "" })}
-          intent="info"
-          emphasis="outline"
-          className="w-full"
-        >
-          <Crosshair aria-hidden /> Recenter airfield
-        </OpsButton>
-      )}
-
-      <div className="map-filter-grid" role="group" aria-label="Traffic filters">
-        {FILTER_META.map((f) => (
-          <button
-            key={f.k}
-            type="button"
-            aria-pressed={filters[f.k]}
-            onClick={() => setFilters((p) => ({ ...p, [f.k]: !p[f.k] }))}
-            className="map-filter-control"
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
 
       {listView ? (
         <AirfieldList onFocus={(f) => setSearch({ focus: f.callsign })} />
@@ -291,6 +261,86 @@ function MapPage() {
       <Drawer open={!!focused} onOpenChange={(o) => !o && setSearch({ focus: "" })}>
         <DrawerContent className="max-h-[88dvh]">
           {focused && <FlightDetail flight={focused} />}
+        </DrawerContent>
+      </Drawer>
+
+      <Drawer open={controlPanelOpen} onOpenChange={setControlPanelOpen}>
+        <DrawerContent
+          className="max-h-[82dvh]"
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            controlTriggerRef.current?.focus();
+          }}
+        >
+          <DrawerHeader className="text-left">
+            <DrawerTitle className="flex items-center gap-2 text-base">
+              <Layers3 aria-hidden className="size-4 text-amber" /> Map controls
+            </DrawerTitle>
+            <DrawerDescription>
+              {layer === "gates"
+                ? "Gate availability"
+                : layer === "actions"
+                  ? "Open airfield actions"
+                  : "Construction and closures"}
+              {` · ${activeFilterCount} of ${FILTER_META.length} traffic groups visible`}
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="space-y-5 px-4 pb-[max(2rem,env(safe-area-inset-bottom))]">
+            <section aria-labelledby="map-overlay-heading">
+              <h2
+                id="map-overlay-heading"
+                className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+              >
+                Operational overlay
+              </h2>
+              <div className="map-control-grid" role="group" aria-label="Map overlays">
+                {(
+                  [
+                    { k: "gates", label: "Gates" },
+                    { k: "actions", label: "Open actions" },
+                    { k: "work", label: "Construction" },
+                  ] as { k: Layer; label: string }[]
+                ).map((item) => (
+                  <button
+                    key={item.k}
+                    type="button"
+                    aria-pressed={layer === item.k}
+                    onClick={() => setSearch({ layer: item.k })}
+                    className="map-segment-control"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section aria-labelledby="map-traffic-heading">
+              <h2
+                id="map-traffic-heading"
+                className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+              >
+                Traffic visibility
+              </h2>
+              <div className="map-filter-grid" role="group" aria-label="Traffic filters">
+                {FILTER_META.map((item) => (
+                  <button
+                    key={item.k}
+                    type="button"
+                    aria-pressed={filters[item.k]}
+                    onClick={() =>
+                      setFilters((previous) => ({
+                        ...previous,
+                        [item.k]: !previous[item.k],
+                      }))
+                    }
+                    className="map-filter-control"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </section>
+          </div>
         </DrawerContent>
       </Drawer>
     </div>

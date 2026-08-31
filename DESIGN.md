@@ -84,7 +84,7 @@ A precision airfield instrument at 04:00: dark anodized surfaces, illuminated ru
 - **Locale(s) and language policy:** English (`en-US`) UI. Operational timestamps display Central Time and compact aviation terminology.
 - **Usage scene:** Primarily a 390×844 phone presented to an audience, with desktop support to 1440px. One-handed scanning, outdoor contrast, and zero-network demo reliability matter.
 - **Register:** Product UI. Information density is operational and controlled; marketing effects are limited to launch and the Map hero.
-- **Memorable signature:** AERION's runway-radar mark and the Aerial Ops display, where bundled public-domain 2022 USGS/USDA NAIP imagery sits beneath the existing surveyed DFW overlays.
+- **Memorable signature:** AERION's runway-radar mark and one continuous aerial cartography language across Pulse and Map, where bundled public-domain 2022 USGS/USDA NAIP imagery sits beneath the existing surveyed DFW overlays and clearly labeled simulated tracks.
 - **Restraint:** Forms, alerts, status semantics, navigation, and recovery patterns remain familiar and quiet.
 - **Anti-references:** Generic neon cyberpunk, glass on every surface, unlabeled icon controls, novelty charts, and commercial consumer-map chrome.
 - **Token ownership/runtime mapping:** This file mirrors the canonical runtime tokens in [`src/styles.css`](src/styles.css). CSS remains the authoring source; any token change must update both files in the same commit. `premium-ui.json` records canonical control ownership.
@@ -99,7 +99,7 @@ Inter owns all interface copy. JetBrains Mono is restricted to callsigns, runway
 
 ## Layout
 
-The phone baseline is 390×844 with a 16px page gutter, 16px section rhythm, safe-area-aware fixed header and bottom dock, and 44px minimum controls. The desktop content rail begins at `lg` and the page caps at 64rem. Horizontal filter rails keep a visible thin scrollbar. Map imagery reserves the exact 1200×762 SVG world geometry so changing display modes never shifts controls or overlays. The reproducible asset record is [`public/dfw-aerial-usgs-naip-2022.source.txt`](public/dfw-aerial-usgs-naip-2022.source.txt).
+The phone baseline is 390×844 with a 16px page gutter, 16px section rhythm, safe-area-aware fixed header and bottom dock, and 44px minimum controls. The desktop content rail begins at `lg` and the page caps at 64rem. Horizontal filter rails keep a visible thin scrollbar. Map imagery reserves the exact 1200×762 SVG world geometry so changing display modes never shifts controls or overlays. Mobile Map is map-first: its display switch and one Controls trigger precede the canvas, while secondary overlay and traffic filters live in the shared controls drawer. The reproducible asset record is [`public/dfw-aerial-usgs-naip-2022.source.txt`](public/dfw-aerial-usgs-naip-2022.source.txt).
 
 ## Elevation & Depth
 
@@ -121,9 +121,9 @@ Gold fill is reserved for the primary action. Secondary actions use tonal or hai
 
 ### Navigation and data display
 
-Mobile navigation uses the safe-area bottom dock; desktop uses the icon rail with accessible labels. Route transitions share the subtle slide/fade. Operational lists keep dividers quiet and numerical columns tabular. The Pulse hero uses a compact surveyed-geometry surface-surveillance preview as its single graphic signature. The Map display switch is a two-option authored button group; overlay and traffic controls use full-width segmented grids rather than floating pills. Dense triage filters live in one command console with one visible option bank at a time instead of stacked pill carousels.
+Mobile navigation uses the safe-area bottom dock; desktop uses the icon rail with accessible labels. Route transitions share the subtle slide/fade. Operational lists keep dividers quiet and numerical columns tabular. The Pulse hero uses the same aerial asset, surveyed geometry, and simulated flight tracks as the full Map in a compact command preview. The Map display switch is a two-option authored button group; one Controls trigger opens full-width overlay and traffic grids in a drawer instead of stacking controls above the canvas. The full display adds a north compass, map-derived scale, runway threshold markings, track history, heading vectors, and zoom-gated aircraft tags. Dense triage filters live in one command console with one visible option bank at a time instead of stacked pill carousels.
 
-Contextual quick actions stay behind one 48px mission launcher on content routes. The Map moves that launcher into its header so no global button sits over surveyed runway content; the action menu and operations remain shared.
+Contextual quick actions stay behind one 48px mission launcher on content routes. Map and Pulse move that launcher into their page chrome so no global button sits over surveyed runway or hero content; the action menu and operations remain shared.
 
 ### Forms and overlays
 
@@ -135,11 +135,11 @@ Lucide is the UI icon family at 16–20px with default stroke weight. The custom
 
 ### Motion
 
-Micro-interactions use 150–200ms ease-out; route content uses a 190ms slide/fade; the active dock icon uses a short spring. The radar sweep is slow and stateful, and the aerial view reduces its intensity. Every animation collapses under `prefers-reduced-motion`.
+Micro-interactions use 150–200ms ease-out; route content uses a 190ms slide/fade; the active dock icon uses a short spring. The radar sweep is slow and stateful, and the aerial view reduces its intensity. Sweep, track pulse, and inertial pan all collapse under `prefers-reduced-motion`.
 
 ### Content and data visualization
 
-Voice is concise, calm, and aviation-specific. Times include CT where context requires it. Runway IDs, callsigns, winds, zoom, and metrics use mono/tabular figures. Map status is never color-only: labels, ARIA descriptions, patterns, and detail panels preserve meaning.
+Voice is concise, calm, and aviation-specific. Times include CT where context requires it. Runway IDs, callsigns, winds, zoom, and metrics use mono/tabular figures. `SIM` identifies deterministic aircraft tracks and `USGS · 2022` identifies the bundled imagery; neither is presented as current satellite telemetry. Map status is never color-only: labels, ARIA descriptions, patterns, and detail panels preserve meaning.
 
 ## Do's and Don'ts
 

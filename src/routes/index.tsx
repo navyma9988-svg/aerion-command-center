@@ -2,7 +2,15 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useOps } from "@/lib/ops-store";
 import { AIRPORT, FLIGHTS, OWNERS, RUNWAYS, TERMINAL_HEALTH, WIND } from "@/lib/airfield-data";
-import { ArrowUpRight, Check, ChevronRight, RefreshCw, TriangleAlert, Wind } from "lucide-react";
+import {
+  ArrowUpRight,
+  Check,
+  ChevronRight,
+  RefreshCw,
+  TriangleAlert,
+  Wind,
+  Zap,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SurfaceRadarPreview } from "@/components/surface-radar-preview";
 import { OpsButton } from "@/components/ops-button";
@@ -14,7 +22,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Live DFW airfield program pulse: overdue actions, disruptions, runway status and terminal health at a glance.",
+          "Simulated DFW airfield program pulse: overdue actions, disruptions, runway status and terminal health at a glance.",
       },
       { property: "og:title", content: "Pulse — DFW Airfield Command" },
       {
@@ -78,7 +86,7 @@ function PulsePage() {
         <Link
           to="/map"
           search={{ focus: "", terminal: "", layer: "gates" }}
-          aria-label="Open live DFW surface map"
+          aria-label="Open simulated DFW surface map"
           className="press group relative block rounded-2xl focus-visible:outline-none"
         >
           <SurfaceRadarPreview
@@ -87,7 +95,7 @@ function PulsePage() {
             degraded={simulation || openAlerts.some((a) => a.severity === "p1")}
           />
           <span
-            className="surface-radar__action ops-button pointer-events-none absolute right-3 top-3 bg-background/72 backdrop-blur-md group-hover:text-foreground"
+            className="surface-radar__action ops-button pointer-events-none absolute bottom-11 right-3 bg-background/78 backdrop-blur-md group-hover:text-foreground"
             data-intent="brand"
             data-emphasis="outline"
             data-size="compact"
@@ -140,6 +148,15 @@ function PulsePage() {
             aria-label="Refresh program data"
           >
             <RefreshCw aria-hidden className={cn(syncing && "animate-spin")} />
+          </OpsButton>
+          <OpsButton
+            onClick={() => window.dispatchEvent(new Event("aerion:quick-actions"))}
+            intent="brand"
+            emphasis="outline"
+            size="icon"
+            aria-label="Open mission actions"
+          >
+            <Zap aria-hidden />
           </OpsButton>
         </div>
       </section>
