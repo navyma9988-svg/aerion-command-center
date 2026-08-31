@@ -121,7 +121,9 @@ Gold fill is reserved for the primary action. Secondary actions use tonal or hai
 
 ### Navigation and data display
 
-Mobile navigation uses the safe-area bottom dock; desktop uses the icon rail with accessible labels. Route transitions share the subtle slide/fade. Operational lists keep dividers quiet and numerical columns tabular. The Pulse hero uses a compact surveyed-geometry surface-surveillance preview as its single graphic signature. The Map display switch is a two-option authored button group; overlay and traffic chips remain independent filters. Dense triage filters live in one command console with one visible option bank at a time instead of stacked pill carousels.
+Mobile navigation uses the safe-area bottom dock; desktop uses the icon rail with accessible labels. Route transitions share the subtle slide/fade. Operational lists keep dividers quiet and numerical columns tabular. The Pulse hero uses a compact surveyed-geometry surface-surveillance preview as its single graphic signature. The Map display switch is a two-option authored button group; overlay and traffic controls use full-width segmented grids rather than floating pills. Dense triage filters live in one command console with one visible option bank at a time instead of stacked pill carousels.
+
+Contextual quick actions stay behind one 48px mission launcher on content routes. The Map moves that launcher into its header so no global button sits over surveyed runway content; the action menu and operations remain shared.
 
 ### Forms and overlays
 

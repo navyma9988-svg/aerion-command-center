@@ -24,21 +24,26 @@ import {
 } from "@/components/ui/drawer";
 import {
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Clock3,
   FileDown,
   FileJson,
+  Filter,
   Lock,
+  MapPin,
   RadioTower,
   Send,
   ShieldAlert,
   Sliders,
   Table,
   TrendingUp,
-  X,
+  UserRound,
 } from "lucide-react";
 import { printDisruptionSummary } from "@/lib/disruption-pdf";
 import { exportAuditCsv, exportAuditJson } from "@/lib/audit-export";
+import { OpsButton } from "@/components/ops-button";
 
 const STATUS_TABS = [
   { key: "open", label: "Open", states: ["new"] },
@@ -83,10 +88,20 @@ function AlertsPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/alerts" });
   const [mineOnly, setMineOnly] = useState(false);
+  const [filterBank, setFilterBank] = useState<"severity" | "terminal" | "runway" | null>(
+    "severity",
+  );
+  const statusRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const tab = STATUS_TABS.find((t) => t.key === search.status) ?? STATUS_TABS[0]!;
-  const sevFilter = search.severity ? search.severity.split(",").filter(Boolean) : [];
-  const terminalFilter = search.terminal ? search.terminal.split(",").filter(Boolean) : [];
+  const sevFilter = useMemo(
+    () => (search.severity ? search.severity.split(",").filter(Boolean) : []),
+    [search.severity],
+  );
+  const terminalFilter = useMemo(
+    () => (search.terminal ? search.terminal.split(",").filter(Boolean) : []),
+    [search.terminal],
+  );
 
   const filtered = useMemo(
     () =>
@@ -98,7 +113,7 @@ function AlertsPage() {
         if (mineOnly && !a.activity.some((e) => e.who === currentUser)) return false;
         return true;
       }),
-    [alerts, tab, search.runway, search.severity, search.terminal, mineOnly, currentUser],
+    [alerts, tab, search.runway, sevFilter, terminalFilter, mineOnly, currentUser],
   );
 
   const counts = Object.fromEntries(
@@ -124,98 +139,71 @@ function AlertsPage() {
     sevFilter.length + terminalFilter.length + (search.runway ? 1 : 0) + (mineOnly ? 1 : 0);
 
   return (
-    <div className="space-y-4">
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+    <div className="stagger-in space-y-4">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3">
         <div className="min-w-0">
           <h1 className="text-[26px] font-bold tracking-tight">Disruption triage</h1>
-          <p className="text-xs text-muted-foreground">
-            {filtered.length} of {alerts.length} items · {AIRPORT.asOf} {AIRPORT.timezone}
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Clock3 aria-hidden className="size-3.5" />
+            <span>
+              {filtered.length} of {alerts.length} items · {AIRPORT.asOf} {AIRPORT.timezone}
+            </span>
           </p>
         </div>
-        <button
-          type="button"
+        <OpsButton
           onClick={() => setMineOnly((v) => !v)}
           aria-pressed={mineOnly}
-          className={cn(
-            "press min-h-11 shrink-0 rounded-full border px-4 text-sm font-medium",
-            mineOnly
-              ? "border-amber bg-amber/12 text-amber"
-              : "border-border bg-card text-muted-foreground",
-          )}
+          intent={mineOnly ? "brand" : "neutral"}
+          emphasis="outline"
+          size="compact"
         >
+          <UserRound aria-hidden />
           Mine
-        </button>
+        </OpsButton>
       </header>
 
-      <div role="tablist" aria-label="Triage status" className="flex gap-2 overflow-x-auto pb-1">
-        {STATUS_TABS.map((t) => (
+      <div role="tablist" aria-label="Triage status" className="triage-status-grid">
+        {STATUS_TABS.map((t, tabIndex) => (
           <button
             key={t.key}
+            ref={(node) => {
+              statusRefs.current[tabIndex] = node;
+            }}
             role="tab"
             aria-selected={t.key === tab.key}
+            tabIndex={t.key === tab.key ? 0 : -1}
             onClick={() => setSearch({ status: t.key, item: "" })}
-            className={cn(
-              "press min-h-11 shrink-0 rounded-full border px-4 text-sm font-medium",
-              t.key === tab.key
-                ? "border-amber bg-amber/15 text-amber"
-                : "border-border bg-card text-muted-foreground",
-            )}
+            onKeyDown={(event) => {
+              if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+              event.preventDefault();
+              const direction = event.key === "ArrowRight" ? 1 : -1;
+              const next = (tabIndex + direction + STATUS_TABS.length) % STATUS_TABS.length;
+              statusRefs.current[next]?.focus();
+              statusRefs.current[next]?.click();
+            }}
+            className="triage-status-grid__tab"
           >
-            {t.label}
-            <span className="mono-data ml-2 text-xs opacity-70">{counts[t.key] ?? 0}</span>
+            <span className="mono-data triage-status-grid__count">{counts[t.key] ?? 0}</span>
+            <span>{t.label}</span>
           </button>
         ))}
       </div>
 
-      <fieldset className="w-full min-w-0 space-y-2">
-        <legend className="sr-only">Filters</legend>
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {(["p1", "p2", "p3"] as Severity[]).map((s) => (
-            <FilterChip
-              key={s}
-              active={sevFilter.includes(s)}
-              onClick={() => toggleMulti("severity", s)}
-              tone={s === "p1" ? "coral" : s === "p2" ? "amber" : "cyan"}
-            >
-              {SEVERITY_LABEL[s]}
-            </FilterChip>
-          ))}
-        </div>
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {[...TERMINALS, "Airside"].map((t) => (
-            <FilterChip
-              key={t}
-              active={terminalFilter.includes(t)}
-              onClick={() => toggleMulti("terminal", t)}
-            >
-              {t === "Airside" ? "Airside" : `Terminal ${t}`}
-            </FilterChip>
-          ))}
-        </div>
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {RUNWAYS.map((r) => (
-            <FilterChip
-              key={r.id}
-              active={search.runway === r.id}
-              onClick={() => setSearch({ runway: search.runway === r.id ? "" : r.id })}
-            >
-              <span className="mono-data">{r.id}</span>
-            </FilterChip>
-          ))}
-        </div>
-        {activeFilterCount > 0 && (
-          <button
-            type="button"
-            onClick={() => {
-              setMineOnly(false);
-              setSearch({ severity: "", terminal: "", runway: "" });
-            }}
-            className="press min-h-11 text-xs font-medium text-amber"
-          >
-            Clear all · {activeFilterCount} filter{activeFilterCount === 1 ? "" : "s"}
-          </button>
-        )}
-      </fieldset>
+      <FilterConsole
+        openBank={filterBank}
+        onOpenBank={(bank) => setFilterBank((current) => (current === bank ? null : bank))}
+        sevFilter={sevFilter}
+        terminalFilter={terminalFilter}
+        runway={search.runway}
+        activeFilterCount={activeFilterCount}
+        onToggleSeverity={(severity) => toggleMulti("severity", severity)}
+        onToggleTerminal={(terminal) => toggleMulti("terminal", terminal)}
+        onToggleRunway={(runway) => setSearch({ runway: search.runway === runway ? "" : runway })}
+        onClear={() => {
+          setMineOnly(false);
+          setSearch({ severity: "", terminal: "", runway: "" });
+        }}
+      />
 
       <EscalationRulesPanel />
 
@@ -259,6 +247,167 @@ function AlertsPage() {
   );
 }
 
+function FilterConsole({
+  openBank,
+  onOpenBank,
+  sevFilter,
+  terminalFilter,
+  runway,
+  activeFilterCount,
+  onToggleSeverity,
+  onToggleTerminal,
+  onToggleRunway,
+  onClear,
+}: {
+  openBank: "severity" | "terminal" | "runway" | null;
+  onOpenBank: (bank: "severity" | "terminal" | "runway") => void;
+  sevFilter: string[];
+  terminalFilter: string[];
+  runway: string;
+  activeFilterCount: number;
+  onToggleSeverity: (severity: Severity) => void;
+  onToggleTerminal: (terminal: string) => void;
+  onToggleRunway: (runway: string) => void;
+  onClear: () => void;
+}) {
+  const bankMeta = {
+    severity: { label: "Priority", count: sevFilter.length, icon: ShieldAlert },
+    terminal: { label: "Terminal", count: terminalFilter.length, icon: MapPin },
+    runway: { label: "Runway", count: runway ? 1 : 0, icon: RadioTower },
+  } as const;
+
+  return (
+    <section className="triage-filter-console" aria-labelledby="triage-filters-heading">
+      <div className="triage-filter-console__header">
+        <div>
+          <p
+            id="triage-filters-heading"
+            className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-muted-foreground"
+          >
+            <Filter aria-hidden className="size-3.5 text-amber" /> Filter console
+          </p>
+          <p className="mt-1 text-[12px] text-muted-foreground">
+            {activeFilterCount > 0
+              ? `${activeFilterCount} active constraint${activeFilterCount === 1 ? "" : "s"}`
+              : "Showing the full operational queue"}
+          </p>
+        </div>
+        {activeFilterCount > 0 ? (
+          <OpsButton onClick={onClear} intent="brand" emphasis="ghost" size="compact">
+            Clear all
+          </OpsButton>
+        ) : null}
+      </div>
+
+      <div className="triage-filter-console__banks" aria-label="Filter categories">
+        {(Object.keys(bankMeta) as Array<keyof typeof bankMeta>).map((bank) => {
+          const meta = bankMeta[bank];
+          const Icon = meta.icon;
+          const expanded = openBank === bank;
+          return (
+            <button
+              key={bank}
+              type="button"
+              onClick={() => onOpenBank(bank)}
+              aria-expanded={expanded}
+              aria-controls={`filter-bank-${bank}`}
+              className="triage-filter-console__bank"
+            >
+              <Icon aria-hidden />
+              <span>{meta.label}</span>
+              {meta.count > 0 ? (
+                <span className="mono-data triage-filter-console__badge">{meta.count}</span>
+              ) : (
+                <ChevronDown aria-hidden className="triage-filter-console__chevron" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {openBank ? (
+        <fieldset id={`filter-bank-${openBank}`} className="triage-filter-console__options">
+          <legend className="sr-only">{bankMeta[openBank].label} filters</legend>
+          {openBank === "severity" &&
+            (["p1", "p2", "p3"] as Severity[]).map((severity) => (
+              <FilterOption
+                key={severity}
+                active={sevFilter.includes(severity)}
+                onClick={() => onToggleSeverity(severity)}
+                tone={severity === "p1" ? "critical" : severity === "p2" ? "warning" : "info"}
+                label={SEVERITY_LABEL[severity].replace(`${severity.toUpperCase()} `, "")}
+                value={severity.toUpperCase()}
+              />
+            ))}
+          {openBank === "terminal" &&
+            [...TERMINALS, "Airside"].map((terminal) => (
+              <FilterOption
+                key={terminal}
+                active={terminalFilter.includes(terminal)}
+                onClick={() => onToggleTerminal(terminal)}
+                label={terminal === "Airside" ? "Airside" : `Terminal ${terminal}`}
+                value={terminal === "Airside" ? "OPS" : terminal}
+              />
+            ))}
+          {openBank === "runway" &&
+            RUNWAYS.map((runwayItem) => (
+              <FilterOption
+                key={runwayItem.id}
+                active={runway === runwayItem.id}
+                onClick={() => onToggleRunway(runwayItem.id)}
+                label={
+                  runwayItem.status === "active"
+                    ? "Active"
+                    : runwayItem.status === "notam"
+                      ? "NOTAM"
+                      : "Closed"
+                }
+                value={runwayItem.id}
+                tone={
+                  runwayItem.status === "closed"
+                    ? "critical"
+                    : runwayItem.status === "notam"
+                      ? "warning"
+                      : "normal"
+                }
+              />
+            ))}
+        </fieldset>
+      ) : null}
+    </section>
+  );
+}
+
+function FilterOption({
+  active,
+  onClick,
+  label,
+  value,
+  tone = "neutral",
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  value: string;
+  tone?: "neutral" | "critical" | "warning" | "info" | "normal";
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      data-tone={tone}
+      onClick={onClick}
+      className="triage-filter-option"
+    >
+      <span className="mono-data triage-filter-option__value">{value}</span>
+      <span className="triage-filter-option__label">{label}</span>
+      <span className="triage-filter-option__state" aria-hidden>
+        {active ? <Check /> : null}
+      </span>
+    </button>
+  );
+}
+
 function FilterChip({
   active,
   onClick,
@@ -276,7 +425,7 @@ function FilterChip({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "press min-h-11 shrink-0 rounded-full border px-3.5 text-xs font-medium",
+        "press min-h-11 shrink-0 rounded-xl border px-3.5 text-xs font-medium",
         !active && "border-border bg-card text-muted-foreground",
         active && tone === "coral" && "border-coral bg-coral/15 text-coral",
         active && tone === "amber" && "border-amber bg-amber/15 text-amber",
@@ -298,67 +447,58 @@ function AlertCard({
   onAck: () => void;
 }) {
   return (
-    <div className="surface-card p-0">
-      <button
-        type="button"
-        onClick={onOpen}
-        className="press w-full p-3 text-left hover:bg-elevated"
-      >
-        <div className="flex flex-wrap items-center gap-2">
-          <span
-            className={cn(
-              "mono-data rounded px-1.5 py-0.5 text-[11px] font-semibold",
-              alert.severity === "p1" && "bg-coral/20 text-coral",
-              alert.severity === "p2" && "bg-amber/20 text-amber",
-              alert.severity === "p3" && "bg-amber/12 text-amber",
-            )}
-          >
-            {alert.severity.toUpperCase()}
-          </span>
-          <span className="mono-data text-xs">{alert.id}</span>
-          <span className="text-[12px] text-muted-foreground">
+    <article className="triage-item" data-severity={alert.severity}>
+      <button type="button" onClick={onOpen} className="triage-item__body">
+        <div className="triage-item__eyebrow">
+          <span className="triage-item__severity">{alert.severity.toUpperCase()}</span>
+          <span className="mono-data text-[11px] font-medium text-foreground">{alert.id}</span>
+          <span className="mono-data text-[11px] text-muted-foreground">
             {alert.time} {AIRPORT.timezone} · {alert.source}
           </span>
-          <span className="ml-auto text-[11px] uppercase text-muted-foreground">
-            {STATE_LABEL[alert.state]}
+          <span className="triage-item__state">{STATE_LABEL[alert.state]}</span>
+        </div>
+        <h2 className="triage-item__title">{alert.title}</h2>
+        <div className="triage-item__meta">
+          <span>
+            <MapPin aria-hidden />
+            {[
+              alert.runway,
+              alert.taxiway && `TWY ${alert.taxiway}`,
+              alert.stand,
+              alert.terminal && `Terminal ${alert.terminal}`,
+            ]
+              .filter(Boolean)
+              .join(" · ") || "Airside"}
+          </span>
+          <span>
+            <Sliders aria-hidden /> {alert.impact}
           </span>
         </div>
-        <p className="mt-1.5 text-sm font-medium">{alert.title}</p>
-        <p className="mt-1 text-[12px] text-muted-foreground">
-          {[
-            alert.runway,
-            alert.taxiway && `Taxiway ${alert.taxiway}`,
-            alert.stand,
-            alert.terminal && `Terminal ${alert.terminal}`,
-          ]
-            .filter(Boolean)
-            .join(" · ") || "Airside"}{" "}
-          · {alert.impact}
-        </p>
         {alert.escalationReason && (
-          <p className="mt-1 flex items-center gap-1 text-[12px] text-amber">
-            <TrendingUp aria-hidden className="size-3" /> Auto-ranked {alert.severity.toUpperCase()}{" "}
-            · {alert.escalationReason}
-          </p>
-        )}
-        {alert.state === "new" && alert.escalatesInMin && (
-          <p className="mt-1 text-[12px] text-coral">
-            Escalates to program manager in {alert.escalatesInMin}m
+          <p className="triage-item__signal text-amber">
+            <TrendingUp aria-hidden /> Auto-ranked {alert.severity.toUpperCase()} ·{" "}
+            {alert.escalationReason}
           </p>
         )}
       </button>
       {alert.state === "new" && (
-        <div className="border-t border-border px-3 py-2">
-          <button
-            type="button"
-            onClick={onAck}
-            className="press inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-amber"
-          >
-            <Check aria-hidden className="size-4" /> Acknowledge
-          </button>
+        <div className="triage-item__footer">
+          <p className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
+            <Clock3 aria-hidden className="size-3.5 shrink-0" />
+            {alert.escalatesInMin ? (
+              <span>
+                Escalation in <span className="mono-data text-coral">{alert.escalatesInMin}m</span>
+              </span>
+            ) : (
+              <span>Manual dispatch</span>
+            )}
+          </p>
+          <OpsButton onClick={onAck} intent="brand" emphasis="outline" size="compact">
+            <Check aria-hidden /> Acknowledge
+          </OpsButton>
         </div>
       )}
-    </div>
+    </article>
   );
 }
 
@@ -462,7 +602,7 @@ function TriageSheet({
               ))}
             </ol>
 
-            <dl className="mono-data grid grid-cols-2 gap-3 text-xs">
+            <dl className="triage-facts-grid mono-data">
               <div>
                 <dt className="text-muted-foreground">Raised</dt>
                 <dd>
@@ -488,7 +628,7 @@ function TriageSheet({
             </dl>
 
             {mode === "prioritize" && (
-              <section className="space-y-3 rounded-xl border border-border p-3">
+              <section className="triage-sheet-panel space-y-3">
                 <h3 className="text-[17px] font-semibold tracking-tight">Prioritize</h3>
                 <div className="flex flex-wrap gap-2">
                   {(["p1", "p2", "p3"] as Severity[]).map((s) => (
@@ -534,22 +674,24 @@ function TriageSheet({
                   className="w-full resize-none rounded-xl border border-input bg-card p-2 text-sm"
                   placeholder="Crew mobilized, target restore 1800 CT"
                 />
-                <button
-                  type="button"
+                <OpsButton
                   onClick={() => {
                     onTriage(alert.id, { severity, owner, impact, note });
                     setNote("");
                     setMode("detail");
                   }}
-                  className="press min-h-11 w-full rounded-xl bg-primary text-sm font-semibold text-primary-foreground"
+                  intent="brand"
+                  emphasis="solid"
+                  className="w-full"
                 >
+                  <ShieldAlert aria-hidden />
                   Set priority and assign
-                </button>
+                </OpsButton>
               </section>
             )}
 
             {mode === "resolve" && (
-              <section className="space-y-3 rounded-xl border border-border p-3">
+              <section className="triage-sheet-panel space-y-3">
                 <h3 className="text-[17px] font-semibold tracking-tight">Resolve</h3>
                 <label className="block text-xs text-muted-foreground" htmlFor="resolve-note">
                   Closure note (required)
@@ -562,54 +704,49 @@ function TriageSheet({
                   className="w-full resize-none rounded-xl border border-input bg-card p-2 text-sm"
                   placeholder="Runway 17C inspection complete, returned to service 05:12 CT"
                 />
-                <button
-                  type="button"
+                <OpsButton
                   disabled={!note.trim()}
                   onClick={() => {
                     onResolve(alert.id, note.trim());
                     setNote("");
                     setMode("detail");
                   }}
-                  className="press min-h-11 w-full rounded-xl bg-success text-sm font-semibold text-background disabled:opacity-50"
+                  intent="success"
+                  emphasis="solid"
+                  className="w-full"
                 >
+                  <Check aria-hidden />
                   Resolve item
-                </button>
+                </OpsButton>
               </section>
             )}
 
             {alert.state === "resolved" && (
-              <section className="space-y-2 rounded-xl border border-success/40 p-3">
+              <section className="triage-sheet-panel space-y-2 border-success/30">
                 <h3 className="text-[17px] font-semibold tracking-tight text-success">
                   Closure exports
                 </h3>
-                <button
-                  type="button"
+                <OpsButton
                   onClick={() => printDisruptionSummary(alert, currentUser)}
-                  className="press inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-success text-sm font-semibold text-success"
+                  intent="success"
+                  emphasis="outline"
+                  className="w-full"
                 >
-                  <FileDown aria-hidden className="size-4" />
+                  <FileDown aria-hidden />
                   Printable closure summary (PDF)
-                </button>
+                </OpsButton>
                 <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => exportAuditJson(alert, trail)}
-                    className="press inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border text-sm font-medium"
-                  >
-                    <FileJson aria-hidden className="size-4" /> Audit JSON
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => exportAuditCsv(alert, trail)}
-                    className="press inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border text-sm font-medium"
-                  >
-                    <Table aria-hidden className="size-4" /> Audit CSV
-                  </button>
+                  <OpsButton onClick={() => exportAuditJson(alert, trail)} size="compact">
+                    <FileJson aria-hidden /> Audit JSON
+                  </OpsButton>
+                  <OpsButton onClick={() => exportAuditCsv(alert, trail)} size="compact">
+                    <Table aria-hidden /> Audit CSV
+                  </OpsButton>
                 </div>
               </section>
             )}
 
-            <section className="space-y-2 rounded-xl border border-border p-3">
+            <section className="triage-sheet-panel space-y-2">
               <h3 className="text-[17px] font-semibold tracking-tight">Operator note</h3>
               <p className="text-[12px] text-muted-foreground">
                 Mention a role to page them: {ROLES.map((r) => `@${r.handle}`).join(" ")}
@@ -627,29 +764,30 @@ function TriageSheet({
               />
               <div className="flex flex-wrap gap-2">
                 {ROLES.map((r) => (
-                  <button
+                  <OpsButton
                     key={r.handle}
-                    type="button"
                     onClick={() =>
                       setOperatorNote((v) => `${v}${v && !v.endsWith(" ") ? " " : ""}@${r.handle} `)
                     }
-                    className="press min-h-11 rounded-full border border-border px-3 text-[12px] text-muted-foreground"
+                    emphasis="ghost"
+                    size="compact"
                   >
                     @{r.handle}
-                  </button>
+                  </OpsButton>
                 ))}
               </div>
-              <button
-                type="button"
+              <OpsButton
                 disabled={!operatorNote.trim()}
                 onClick={() => {
                   onNote(alert.id, operatorNote);
                   setOperatorNote("");
                 }}
-                className="press inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                intent="brand"
+                emphasis="solid"
+                className="w-full"
               >
-                <Send aria-hidden className="size-4" /> Post note to audit trail
-              </button>
+                <Send aria-hidden /> Post note to audit trail
+              </OpsButton>
             </section>
 
             <section>
@@ -709,32 +847,33 @@ function TriageSheet({
             </div>
           </div>
 
-          <div className="safe-bottom sticky bottom-0 grid grid-cols-3 gap-2 border-t border-border bg-popover p-3">
-            <button
-              type="button"
+          <div className="triage-action-dock safe-bottom sticky bottom-0 grid grid-cols-2 gap-2 border-t border-border bg-popover p-3">
+            <OpsButton
               onClick={() => onAck(alert.id)}
               disabled={alert.state !== "new"}
-              className="press inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-border text-sm font-medium disabled:opacity-40"
+              intent="brand"
+              emphasis="solid"
+              className="col-span-2"
             >
-              <Check aria-hidden className="size-4" /> Ack
-            </button>
-            <button
-              type="button"
+              <Check aria-hidden /> Acknowledge incident
+            </OpsButton>
+            <OpsButton
               onClick={() => setMode(mode === "prioritize" ? "detail" : "prioritize")}
               aria-expanded={mode === "prioritize"}
-              className="press inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-amber text-sm font-semibold text-amber-foreground"
+              intent="warning"
+              emphasis="outline"
             >
-              <ShieldAlert aria-hidden className="size-4" /> Prioritize
-            </button>
-            <button
-              type="button"
+              <ShieldAlert aria-hidden /> Prioritize
+            </OpsButton>
+            <OpsButton
               onClick={() => setMode(mode === "resolve" ? "detail" : "resolve")}
               aria-expanded={mode === "resolve"}
               disabled={alert.state === "resolved"}
-              className="press inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-border text-sm font-medium disabled:opacity-40"
+              intent="success"
+              emphasis="outline"
             >
-              <X aria-hidden className="size-4" /> Resolve
-            </button>
+              <Check aria-hidden /> Resolve
+            </OpsButton>
           </div>
         </div>
       </DrawerContent>

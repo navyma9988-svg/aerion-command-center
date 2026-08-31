@@ -356,10 +356,20 @@
   background: color-mix(in oklab, var(--color-coral) 7%, var(--color-card));
 }
 
+.ops-button[data-emphasis="outline"][data-intent="success"] {
+  border-color: color-mix(in oklab, var(--color-success) 28%, var(--color-border));
+  color: var(--color-success);
+  background: color-mix(in oklab, var(--color-success) 7%, var(--color-card));
+}
+
 .ops-button[data-emphasis="ghost"] {
   color: var(--color-muted-foreground);
   background: transparent;
   box-shadow: none;
+}
+
+.ops-button[data-emphasis="ghost"][data-intent="brand"] {
+  color: var(--color-amber);
 }
 
 .ops-button:hover:not(:disabled) {
@@ -461,6 +471,451 @@
   border-radius: 999px;
   background: var(--color-success);
   box-shadow: 0 0 10px color-mix(in oklab, var(--color-success) 72%, transparent);
+}
+
+.surface-radar__action {
+  z-index: 3;
+}
+
+.triage-status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 0.25rem;
+  background: color-mix(in oklab, var(--color-card) 92%, transparent);
+  box-shadow: var(--hairline);
+}
+
+.triage-status-grid__tab {
+  display: flex;
+  min-width: 0;
+  min-height: 58px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.15rem;
+  border-radius: var(--radius-md);
+  padding-inline: 0.65rem;
+  color: var(--color-muted-foreground);
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+}
+
+.triage-status-grid__tab[aria-selected="true"] {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-amber) 9%, var(--color-elevated));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--color-amber) 20%, transparent),
+    var(--hairline);
+}
+
+.triage-status-grid__count {
+  color: var(--color-foreground);
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.triage-status-grid__tab[aria-selected="true"] .triage-status-grid__count {
+  color: var(--color-amber);
+}
+
+.triage-filter-console {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-card);
+  box-shadow: var(--shadow-card), var(--hairline);
+}
+
+.triage-filter-console__header {
+  display: flex;
+  min-height: 60px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0.85rem;
+}
+
+.triage-filter-console__banks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  border-block: 1px solid var(--color-border);
+  background: var(--color-border);
+}
+
+.triage-filter-console__bank {
+  display: grid;
+  min-width: 0;
+  min-height: 52px;
+  grid-template-columns: 1rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.4rem;
+  padding-inline: 0.65rem;
+  color: var(--color-muted-foreground);
+  background: color-mix(in oklab, var(--color-elevated) 56%, var(--color-card));
+  font-size: 0.6875rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.triage-filter-console__bank:hover,
+.triage-filter-console__bank[aria-expanded="true"] {
+  color: var(--color-foreground);
+  background: var(--color-elevated);
+}
+
+.triage-filter-console__bank[aria-expanded="true"] > svg:first-child {
+  color: var(--color-amber);
+}
+
+.triage-filter-console__bank > svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.triage-filter-console__badge {
+  display: grid;
+  width: 1.15rem;
+  height: 1.15rem;
+  place-items: center;
+  border-radius: 0.35rem;
+  color: var(--color-primary-foreground);
+  background: var(--color-amber);
+  font-size: 0.625rem;
+  font-weight: 800;
+}
+
+.triage-filter-console__chevron {
+  opacity: 0.48;
+}
+
+.triage-filter-console__options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+  padding: 0.65rem;
+  animation: filter-bank-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.triage-filter-option {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 58px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.15rem;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.55rem 1.65rem 0.55rem 0.6rem;
+  color: var(--color-muted-foreground);
+  background: color-mix(in oklab, var(--color-elevated) 54%, transparent);
+  text-align: left;
+  cursor: pointer;
+}
+
+.triage-filter-option[aria-pressed="true"] {
+  border-color: color-mix(in oklab, var(--color-amber) 34%, var(--color-border));
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-amber) 8%, var(--color-elevated));
+}
+
+.triage-filter-option__value {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--color-foreground);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.triage-filter-option__label {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 0.625rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.triage-filter-option__state {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  display: grid;
+  width: 1rem;
+  height: 1rem;
+  place-items: center;
+  transform: translateY(-50%);
+  color: var(--color-amber);
+}
+
+.triage-filter-option__state > svg {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.triage-filter-option[data-tone="critical"] .triage-filter-option__value {
+  color: var(--color-coral);
+}
+
+.triage-filter-option[data-tone="warning"] .triage-filter-option__value {
+  color: var(--color-amber);
+}
+
+.triage-filter-option[data-tone="info"] .triage-filter-option__value {
+  color: var(--color-cyan);
+}
+
+.triage-filter-option[data-tone="normal"] .triage-filter-option__value {
+  color: var(--color-success);
+}
+
+.triage-item {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-card);
+  box-shadow: var(--shadow-card), var(--hairline);
+}
+
+.triage-item::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 3px;
+  background: var(--color-cyan);
+}
+
+.triage-item[data-severity="p1"]::before {
+  background: var(--color-coral);
+}
+
+.triage-item[data-severity="p2"]::before {
+  background: var(--color-amber);
+}
+
+.triage-item__body {
+  display: block;
+  width: 100%;
+  padding: 0.85rem 0.9rem 0.75rem 1rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.triage-item__body:hover {
+  background: color-mix(in oklab, var(--color-elevated) 54%, transparent);
+}
+
+.triage-item__eyebrow {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.triage-item__severity,
+.triage-item__state {
+  font-size: 0.625rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.triage-item__severity {
+  color: var(--color-coral);
+}
+
+.triage-item[data-severity="p2"] .triage-item__severity {
+  color: var(--color-amber);
+}
+
+.triage-item[data-severity="p3"] .triage-item__severity {
+  color: var(--color-cyan);
+}
+
+.triage-item__state {
+  margin-left: auto;
+  color: var(--color-muted-foreground);
+}
+
+.triage-item__title {
+  margin-top: 0.55rem;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.triage-item__meta {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.65rem;
+  color: var(--color-muted-foreground);
+  font-size: 0.6875rem;
+}
+
+.triage-item__meta > span,
+.triage-item__signal {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.triage-item__meta svg,
+.triage-item__signal svg {
+  width: 0.8rem;
+  height: 0.8rem;
+  flex: none;
+}
+
+.triage-item__signal {
+  margin-top: 0.55rem;
+  font-size: 0.6875rem;
+}
+
+.triage-item__footer {
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  padding: 0.4rem 0.55rem 0.4rem 1rem;
+  background: color-mix(in oklab, var(--color-background) 26%, transparent);
+}
+
+.triage-facts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-border);
+  font-size: 0.6875rem;
+}
+
+.triage-facts-grid > div {
+  min-width: 0;
+  padding: 0.75rem;
+  background: var(--color-card);
+}
+
+.triage-facts-grid dt {
+  margin-bottom: 0.2rem;
+  color: var(--color-muted-foreground);
+  font-family: var(--font-sans);
+}
+
+.triage-facts-grid dd {
+  overflow-wrap: anywhere;
+}
+
+.triage-sheet-panel {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 0.85rem;
+  background: color-mix(in oklab, var(--color-card) 84%, transparent);
+  box-shadow: var(--hairline);
+}
+
+.triage-action-dock {
+  box-shadow: 0 -12px 28px -20px color-mix(in oklab, black 80%, transparent);
+}
+
+.quick-action-launcher {
+  z-index: var(--z-header);
+}
+
+.quick-action-trigger {
+  cursor: pointer;
+  box-shadow:
+    var(--shadow-card),
+    inset 0 1px 0 color-mix(in oklab, white 6%, transparent),
+    0 0 24px -14px color-mix(in oklab, var(--color-amber) 75%, transparent);
+}
+
+.quick-action-menu {
+  display: grid;
+  width: min(17rem, calc(100vw - 2rem));
+  gap: 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 0.65rem;
+  background: color-mix(in oklab, var(--color-card) 94%, transparent);
+  box-shadow:
+    0 24px 58px -24px color-mix(in oklab, black 88%, transparent),
+    var(--hairline);
+  backdrop-filter: blur(18px);
+}
+
+.map-control-grid,
+.map-filter-grid {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-border);
+  box-shadow: var(--hairline);
+}
+
+.map-control-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.map-filter-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.map-segment-control,
+.map-filter-control {
+  min-width: 0;
+  min-height: 48px;
+  padding-inline: 0.45rem;
+  color: var(--color-muted-foreground);
+  background: color-mix(in oklab, var(--color-elevated) 58%, var(--color-card));
+  font-size: 0.6875rem;
+  font-weight: 650;
+  line-height: 1.15;
+  cursor: pointer;
+}
+
+.map-segment-control[aria-pressed="true"] {
+  color: var(--color-amber);
+  background: color-mix(in oklab, var(--color-amber) 9%, var(--color-elevated));
+  box-shadow: inset 0 -2px 0 var(--color-amber);
+}
+
+.map-filter-control[aria-pressed="true"] {
+  color: var(--color-cyan);
+  background: color-mix(in oklab, var(--color-cyan) 7%, var(--color-elevated));
+  box-shadow: inset 0 -2px 0 color-mix(in oklab, var(--color-cyan) 62%, transparent);
+}
+
+@keyframes filter-bank-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @utility dot-sep {

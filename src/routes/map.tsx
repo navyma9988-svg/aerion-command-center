@@ -4,7 +4,7 @@ import { useOps } from "@/lib/ops-store";
 import { FLIGHTS, RUNWAYS, TERMINAL_HEALTH, WIND, type Flight } from "@/lib/airfield-data";
 import { AirfieldRadar, ALL_FILTERS, type RadarFilters } from "@/components/airfield-radar";
 import { cn } from "@/lib/utils";
-import { Plane, Crosshair, List, Radar, Satellite } from "lucide-react";
+import { Plane, Crosshair, List, Radar, Satellite, Zap } from "lucide-react";
 import {
   Drawer,
   DrawerContent,
@@ -12,6 +12,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { OpsButton } from "@/components/ops-button";
 
 type Layer = "gates" | "actions" | "work";
 
@@ -153,14 +154,25 @@ function MapPage() {
             {WIND.flow} · {WIND.dir}° / {WIND.kt}kt · {WIND.approach}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setListView((v) => !v)}
-          aria-pressed={listView}
-          className="press inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-border px-4 text-xs font-medium"
-        >
-          <List aria-hidden className="size-4" /> {listView ? "Map view" : "List view"}
-        </button>
+        <div className="flex gap-2">
+          <OpsButton
+            onClick={() => setListView((v) => !v)}
+            aria-pressed={listView}
+            size="icon"
+            aria-label={listView ? "Show map view" : "Show list view"}
+          >
+            <List aria-hidden />
+          </OpsButton>
+          <OpsButton
+            onClick={() => window.dispatchEvent(new Event("aerion:quick-actions"))}
+            intent="brand"
+            emphasis="outline"
+            size="icon"
+            aria-label="Open mission actions"
+          >
+            <Zap aria-hidden />
+          </OpsButton>
+        </div>
       </header>
 
       {!listView && (
@@ -189,7 +201,7 @@ function MapPage() {
         </div>
       )}
 
-      <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Map overlays">
+      <div className="map-control-grid" role="group" aria-label="Map overlays">
         {(
           [
             { k: "gates", label: "Gates" },
@@ -202,40 +214,32 @@ function MapPage() {
             type="button"
             aria-pressed={layer === l.k}
             onClick={() => setSearch({ layer: l.k })}
-            className={cn(
-              "press min-h-11 shrink-0 rounded-full border px-4 text-xs font-medium",
-              layer === l.k
-                ? "border-amber bg-amber/15 text-amber"
-                : "border-border bg-card text-muted-foreground",
-            )}
+            className="map-segment-control"
           >
             {l.label}
           </button>
         ))}
-        {(terminal || focus) && (
-          <button
-            type="button"
-            onClick={() => setSearch({ terminal: "", focus: "" })}
-            className="press inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-cyan px-4 text-xs font-medium text-cyan"
-          >
-            <Crosshair aria-hidden className="size-4" /> Recenter
-          </button>
-        )}
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Traffic filters">
+      {(terminal || focus) && (
+        <OpsButton
+          onClick={() => setSearch({ terminal: "", focus: "" })}
+          intent="info"
+          emphasis="outline"
+          className="w-full"
+        >
+          <Crosshair aria-hidden /> Recenter airfield
+        </OpsButton>
+      )}
+
+      <div className="map-filter-grid" role="group" aria-label="Traffic filters">
         {FILTER_META.map((f) => (
           <button
             key={f.k}
             type="button"
             aria-pressed={filters[f.k]}
             onClick={() => setFilters((p) => ({ ...p, [f.k]: !p[f.k] }))}
-            className={cn(
-              "press min-h-11 shrink-0 rounded-full border px-4 text-xs font-medium",
-              filters[f.k]
-                ? "border-cyan/50 bg-cyan/10 text-cyan"
-                : "border-border bg-card text-muted-foreground",
-            )}
+            className="map-filter-control"
           >
             {f.label}
           </button>

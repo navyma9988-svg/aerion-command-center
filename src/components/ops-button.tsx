@@ -18,6 +18,7 @@ export const OpsButton = forwardRef<HTMLButtonElement, OpsButtonProps>(function 
     emphasis = "outline",
     size = "default",
     type = "button",
+    onClick,
     ...props
   },
   ref,
@@ -30,6 +31,7 @@ export const OpsButton = forwardRef<HTMLButtonElement, OpsButtonProps>(function 
       data-emphasis={emphasis}
       data-size={size}
       className={cn("ops-button", className)}
+      onClick={onClick}
       {...props}
     />
   );

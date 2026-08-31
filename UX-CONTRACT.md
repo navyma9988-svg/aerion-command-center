@@ -52,6 +52,7 @@ Native select and time popups are intentional where the operating-system popup i
 - Drawers are the canonical mobile detail surface for terminals and flights, close with Escape through the maintained primitive, and restore focus through that primitive.
 - Query-backed Map focus, terminal, and overlay state remains unchanged and restorable. The Aerial Ops/ASDE-X display preference is session-scoped presentation state only.
 - The Map keeps visible non-drag zoom and recenter controls. Tab reaches runways, terminals, aircraft, and controls; Enter/Space activates terminals and aircraft.
+- Contextual quick actions use the shared mission launcher. On the Map, its trigger lives in the page header so it never obscures runway or aircraft content; the same actions and feedback remain available.
 - Persistent chrome and safe-area padding must not obscure focused content. Horizontal filter rails visibly scroll rather than clipping or hiding their scrollbar.
 
 ## Overlays and feedback

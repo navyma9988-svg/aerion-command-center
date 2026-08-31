@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useOps } from "@/lib/ops-store";
-import { AIRPORT, OWNERS, RUNWAYS, TERMINAL_HEALTH, WIND } from "@/lib/airfield-data";
-import { Check, ChevronRight, RefreshCw, TriangleAlert, Wind } from "lucide-react";
+import { AIRPORT, FLIGHTS, OWNERS, RUNWAYS, TERMINAL_HEALTH, WIND } from "@/lib/airfield-data";
+import { ArrowUpRight, Check, ChevronRight, RefreshCw, TriangleAlert, Wind } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SurfaceRadarPreview } from "@/components/surface-radar-preview";
+import { OpsButton } from "@/components/ops-button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -69,48 +71,77 @@ function PulsePage() {
     <div className="stagger-in space-y-4">
       <section
         className={cn(
-          "surface-card relative overflow-hidden",
+          "surface-card relative overflow-hidden p-3",
           (simulation || openAlerts.some((a) => a.severity === "p1")) && "hero-degraded",
         )}
       >
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+        <Link
+          to="/map"
+          search={{ focus: "", terminal: "", layer: "gates" }}
+          aria-label="Open live DFW surface map"
+          className="press group relative block rounded-2xl focus-visible:outline-none"
+        >
+          <SurfaceRadarPreview
+            alertCount={openAlerts.length}
+            activeMovements={FLIGHTS.length}
+            degraded={simulation || openAlerts.some((a) => a.severity === "p1")}
+          />
+          <span
+            className="surface-radar__action ops-button pointer-events-none absolute right-3 top-3 bg-background/72 backdrop-blur-md group-hover:text-foreground"
+            data-intent="brand"
+            data-emphasis="outline"
+            data-size="compact"
+          >
+            Open map <ArrowUpRight aria-hidden className="size-3.5" />
+          </span>
+        </Link>
+
+        <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 px-1 pb-1">
           <div className="min-w-0">
-            <p className="text-[13px] font-medium text-muted-foreground">DFW Airfield Pulse</p>
-            <h1 className="mt-1 text-[28px] leading-tight">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              Airfield pulse
+            </p>
+            <h1 className="mt-1 text-[22px] leading-tight">
               {WIND.approach} <span className="text-muted-foreground">·</span> {WIND.flow}
             </h1>
           </div>
-          <button
-            type="button"
+          <p className="flex items-end gap-2 text-right">
+            <span className="mono-data text-[46px] font-bold leading-[0.82] tracking-[-0.06em] text-amber">
+              <CountUp value={counts.open} />
+            </span>
+            <span className="pb-0.5 text-[10px] font-semibold uppercase leading-tight tracking-[0.12em] text-muted-foreground">
+              open
+              <br />
+              actions
+            </span>
+          </p>
+        </div>
+
+        <div className="mt-3 flex items-center gap-2 border-t border-border px-1 pt-3">
+          <p className="min-w-0 flex-1 truncate text-[12px] text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <Wind aria-hidden className="size-3.5" />
+              <span className="mono-data">
+                {WIND.dir}° / {WIND.kt}kt
+              </span>
+            </span>
+            <span className="dot-sep">
+              <span className="mono-data">{AIRPORT.asOf}</span> {AIRPORT.timezone}
+            </span>
+            <span className="dot-sep hidden sm:inline">
+              sync <span className="mono-data">{syncedAt}</span>
+            </span>
+          </p>
+          <OpsButton
             onClick={refresh}
-            className="press grid size-11 shrink-0 place-items-center rounded-xl bg-elevated text-muted-foreground hover:text-foreground"
+            intent="neutral"
+            emphasis="ghost"
+            size="icon"
             aria-label="Refresh program data"
           >
-            <RefreshCw aria-hidden className={cn("size-4", syncing && "animate-spin")} />
-          </button>
+            <RefreshCw aria-hidden className={cn(syncing && "animate-spin")} />
+          </OpsButton>
         </div>
-        <p className="mt-2 flex flex-wrap items-center text-[13px] text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5">
-            <Wind aria-hidden className="size-3.5" />
-            <span className="mono-data">
-              {WIND.dir}° / {WIND.kt}kt
-            </span>
-          </span>
-          <span className="dot-sep">
-            As of <span className="mono-data">{AIRPORT.asOf}</span> {AIRPORT.timezone}
-          </span>
-          <span className="dot-sep">
-            synced <span className="mono-data">{syncedAt}</span>
-          </span>
-        </p>
-        <p className="mt-6 flex items-end gap-2.5">
-          <span className="mono-data text-[56px] font-bold leading-[0.88] tracking-[-0.06em] text-amber">
-            <CountUp value={counts.open} />
-          </span>
-          <span className="pb-0.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            open actions
-          </span>
-        </p>
       </section>
 
       <section aria-labelledby="status-h" className="grid grid-cols-2 gap-3">
