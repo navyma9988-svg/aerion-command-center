@@ -60,12 +60,17 @@ export function NotificationToasts() {
     setShown((p) => [...p, ...fresh.map((f) => f.id)]);
     if (quietActive) return;
     setQueue((p) => [...fresh, ...p].slice(0, 1));
-    const t = window.setTimeout(
-      () => setQueue((p) => p.filter((q) => !fresh.some((f) => f.id === q.id))),
+  }, [notifications, shown, quietActive]);
+
+  const activeToastId = queue[0]?.id;
+  useEffect(() => {
+    if (!activeToastId) return;
+    const timer = window.setTimeout(
+      () => setQueue((current) => current.filter((item) => item.id !== activeToastId)),
       5000,
     );
-    return () => window.clearTimeout(t);
-  }, [notifications, shown, quietActive]);
+    return () => window.clearTimeout(timer);
+  }, [activeToastId]);
 
   if (!queue.length) return null;
 
