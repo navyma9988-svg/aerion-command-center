@@ -288,6 +288,509 @@
   box-shadow: var(--shadow-card), var(--hairline);
 }
 
+/* Brief signature: a compact pre-shift compiler, not a generic document form. */
+.brief-command-deck {
+  width: 100%;
+  max-width: 52rem;
+  margin-inline: auto;
+  background: radial-gradient(
+    ellipse 88% 26rem at 50% -7rem,
+    color-mix(in oklab, var(--color-cyan) 4%, transparent),
+    transparent 74%
+  );
+}
+
+.brief-page-header,
+.brief-readiness__header,
+.brief-readiness__identity,
+.brief-readiness__priority,
+.brief-output__header,
+.brief-output__header > span:first-child {
+  display: flex;
+  align-items: center;
+}
+
+.brief-page-header,
+.brief-readiness__header,
+.brief-readiness__priority,
+.brief-output__header {
+  justify-content: space-between;
+}
+
+.brief-page-header {
+  min-height: 48px;
+  gap: 1rem;
+}
+
+.brief-eyebrow {
+  color: var(--color-muted-foreground);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.brief-page-header h1 {
+  margin-top: 0.22rem;
+}
+
+.brief-register-status {
+  display: inline-flex;
+  min-height: 32px;
+  flex: none;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid color-mix(in oklab, var(--color-success) 20%, var(--color-border));
+  border-radius: 999px;
+  padding-inline: 0.65rem;
+  color: var(--color-success);
+  background: color-mix(in oklab, var(--color-success) 6%, var(--color-card));
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.brief-register-status > span {
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 999px;
+  background: var(--color-success);
+  box-shadow: 0 0 10px color-mix(in oklab, var(--color-success) 70%, transparent);
+}
+
+.brief-readiness {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--color-cyan) 13%, var(--color-border));
+  border-radius: var(--radius-xl);
+  padding: 1rem;
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--color-cyan) 4%, transparent),
+      transparent 38%
+    ),
+    var(--color-card);
+  box-shadow: var(--shadow-card), var(--hairline);
+}
+
+.brief-readiness::after {
+  content: "";
+  position: absolute;
+  right: 0.75rem;
+  top: 0.75rem;
+  width: 1rem;
+  height: 1rem;
+  border-right: 1px solid color-mix(in oklab, var(--color-cyan) 24%, transparent);
+  border-top: 1px solid color-mix(in oklab, var(--color-cyan) 24%, transparent);
+  pointer-events: none;
+}
+
+.brief-readiness__header {
+  gap: 0.75rem;
+}
+
+.brief-readiness__identity {
+  min-width: 0;
+  gap: 0.65rem;
+}
+
+.brief-readiness__icon,
+.brief-output__idle-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  border: 1px solid color-mix(in oklab, var(--color-cyan) 20%, var(--color-border));
+  color: var(--color-cyan);
+  background: color-mix(in oklab, var(--color-cyan) 7%, transparent);
+}
+
+.brief-readiness__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+}
+
+.brief-readiness__icon svg,
+.brief-output__idle-icon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.brief-readiness__phase {
+  margin-right: 1.2rem;
+  color: var(--color-cyan);
+  font-size: 0.625rem;
+}
+
+.brief-readiness__priority {
+  gap: 1rem;
+  margin-top: 0.9rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.85rem;
+}
+
+.brief-readiness__statement {
+  max-width: 28rem;
+  margin-top: 0.18rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.brief-readiness__stale {
+  display: grid;
+  flex: none;
+  justify-items: end;
+}
+
+.brief-readiness__stale strong {
+  color: var(--color-coral);
+  font-size: 1.35rem;
+  line-height: 1;
+  text-shadow: 0 0 18px color-mix(in oklab, var(--color-coral) 26%, transparent);
+}
+
+.brief-readiness__stale span {
+  margin-top: 0.28rem;
+  color: var(--color-muted-foreground);
+  font-size: 0.5625rem;
+  white-space: nowrap;
+}
+
+.brief-signal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  margin-top: 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-border);
+}
+
+.brief-signal {
+  --brief-signal: var(--color-muted-foreground);
+  position: relative;
+  min-width: 0;
+  padding: 0.65rem 0.7rem;
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--brief-signal) 5%, transparent),
+      transparent 58%
+    ),
+    var(--color-card);
+}
+
+.brief-signal[data-tone="coral"] {
+  --brief-signal: var(--color-coral);
+}
+
+.brief-signal[data-tone="amber"] {
+  --brief-signal: var(--color-amber);
+}
+
+.brief-signal[data-tone="cyan"] {
+  --brief-signal: var(--color-cyan);
+}
+
+.brief-signal::before {
+  content: "";
+  position: absolute;
+  left: 0.7rem;
+  top: 0;
+  width: 1.8rem;
+  height: 1px;
+  background: color-mix(in oklab, var(--brief-signal) 72%, transparent);
+  box-shadow: 0 0 10px color-mix(in oklab, var(--brief-signal) 48%, transparent);
+}
+
+.brief-signal dt {
+  color: var(--color-muted-foreground);
+  font-size: 0.5625rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.brief-signal dd {
+  margin-top: 0.18rem;
+  color: var(--brief-signal);
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.brief-process {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-border);
+  box-shadow: var(--hairline);
+}
+
+.brief-stage {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 74px;
+  place-items: center;
+  align-content: center;
+  gap: 0.15rem;
+  padding: 0.5rem 0.25rem;
+  color: var(--color-muted-foreground);
+  background: color-mix(in oklab, var(--color-elevated) 54%, var(--color-card));
+  text-align: center;
+}
+
+.brief-stage[data-state="active"] {
+  color: var(--color-amber);
+  background: color-mix(in oklab, var(--color-amber) 8%, var(--color-card));
+  box-shadow: inset 0 -2px 0 var(--color-amber);
+}
+
+.brief-stage[data-state="complete"] {
+  color: var(--color-success);
+}
+
+.brief-stage__marker {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid color-mix(in oklab, currentColor 18%, var(--color-border));
+  border-radius: 8px;
+  background: color-mix(in oklab, currentColor 5%, transparent);
+}
+
+.brief-stage__marker svg {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+.brief-stage__label {
+  color: currentColor;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.brief-stage__detail {
+  max-width: 100%;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brief-output {
+  position: relative;
+  min-height: 168px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(
+      155deg,
+      color-mix(in oklab, var(--color-amber) 2.5%, transparent),
+      transparent 34%
+    ),
+    var(--color-card);
+  box-shadow: var(--shadow-card), var(--hairline);
+}
+
+.brief-output[data-phase="scanning"],
+.brief-output[data-phase="ranking"],
+.brief-output[data-phase="writing"] {
+  border-color: color-mix(in oklab, var(--color-cyan) 20%, var(--color-border));
+  box-shadow:
+    var(--shadow-card),
+    var(--hairline),
+    0 0 26px -19px var(--color-cyan);
+}
+
+.brief-output[data-phase="done"] {
+  border-color: color-mix(in oklab, var(--color-success) 18%, var(--color-border));
+}
+
+.brief-output__header {
+  min-height: 44px;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  padding-inline: 1rem;
+  color: var(--color-muted-foreground);
+  background: color-mix(in oklab, var(--color-background) 25%, transparent);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.brief-output__header > span:first-child {
+  gap: 0.45rem;
+  color: var(--color-foreground);
+}
+
+.brief-output__header svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  color: var(--color-amber);
+}
+
+.brief-output__body {
+  position: relative;
+  min-height: 122px;
+  padding: 1rem;
+}
+
+.brief-output__idle {
+  display: flex;
+  min-height: 88px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--color-muted-foreground);
+}
+
+.brief-output__idle-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+}
+
+.brief-output__idle p {
+  color: var(--color-foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.brief-output__idle div > span {
+  display: block;
+  margin-top: 0.22rem;
+  font-size: 0.625rem;
+}
+
+.brief-output__working {
+  display: grid;
+  min-height: 88px;
+  align-content: center;
+  gap: 0.8rem;
+}
+
+.brief-output__working p {
+  color: var(--color-cyan);
+  font-size: 0.6875rem;
+}
+
+.brief-output__lines {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.brief-output__lines span {
+  display: block;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-muted-foreground) 13%, transparent);
+}
+
+.brief-output__lines span:nth-child(2) {
+  width: 82%;
+}
+
+.brief-output__lines span:nth-child(3) {
+  width: 61%;
+}
+
+.brief-output__beam {
+  position: absolute;
+  z-index: 1;
+  left: 1rem;
+  right: 1rem;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-cyan), transparent);
+  box-shadow: 0 0 12px color-mix(in oklab, var(--color-cyan) 60%, transparent);
+  animation: brief-scan 1.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.brief-output__copy {
+  color: var(--color-foreground);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.brief-output__copy::first-line {
+  color: var(--color-amber);
+  font-weight: 650;
+}
+
+.ops-button.brief-generate-button[data-emphasis="solid"][data-intent="brand"] {
+  min-height: 52px;
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  box-shadow: var(--hairline), var(--glow-brand-active);
+}
+
+.brief-demo-note {
+  color: var(--color-muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+@keyframes brief-scan {
+  0%,
+  100% {
+    opacity: 0.18;
+    transform: translateY(12px);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateY(112px);
+  }
+}
+
+@media (max-width: 380px) {
+  .brief-register-status {
+    padding-inline: 0.5rem;
+  }
+
+  .brief-readiness__phase {
+    display: none;
+  }
+
+  .brief-readiness__statement {
+    font-size: 0.8125rem;
+  }
+
+  .brief-stage__detail {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .ops-button.brief-generate-button[data-emphasis="solid"][data-intent="brand"] {
+    width: calc(100% - 4rem);
+  }
+}
+
+@media (min-width: 768px) {
+  .brief-command-deck > :not(:last-child) {
+    margin-block-end: 0.75rem;
+  }
+}
+
 /* Pulse signature: edge-lit avionics modules with a strict glow budget. */
 .pulse-command-deck {
   background: radial-gradient(
