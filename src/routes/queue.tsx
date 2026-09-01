@@ -3,7 +3,8 @@ import { useMemo, useState } from "react";
 import { useOps } from "@/lib/ops-store";
 import { type ActionStatus } from "@/lib/airfield-data";
 import { cn } from "@/lib/utils";
-import { Search, SearchX, Check, ArrowUpRight } from "lucide-react";
+import { Search, SearchX, Check, ArrowUpRight, X, ChevronsUp } from "lucide-react";
+import { OpsButton } from "@/components/ops-button";
 import {
   Drawer,
   DrawerContent,
@@ -81,13 +82,21 @@ function QueuePage() {
   const selected = actions.find((a) => a.id === actionId) ?? null;
 
   return (
-    <div className="space-y-4">
-      <header>
-        <h1 className="text-[26px] font-bold tracking-tight">DFW Airfield Queue</h1>
-        <p className="text-xs text-muted-foreground">{list.length} shown · worst first</p>
+    <div className="queue-command-deck space-y-4">
+      <header className="command-page-header flex items-end justify-between gap-3">
+        <div>
+          <p className="command-page-eyebrow">
+            <ChevronsUp aria-hidden className="size-3.5" /> Action register
+          </p>
+          <h1 className="text-[26px] font-bold tracking-tight">DFW Airfield Queue</h1>
+        </div>
+        <span className="queue-command-count mono-data">
+          <strong>{list.length}</strong>
+          <span>Worst first</span>
+        </span>
       </header>
 
-      <div className="relative">
+      <div className="command-search-field relative">
         <Search
           aria-hidden
           className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
@@ -98,36 +107,45 @@ function QueuePage() {
           onChange={(e) => setQ(e.target.value)}
           aria-label="Search actions, owners, IDs"
           placeholder="Search actions, owners, IDs"
-          className="min-h-11 w-full rounded-xl border border-input bg-card pl-9 pr-3 text-sm placeholder:text-muted-foreground"
+          className="min-h-11 w-full rounded-xl border border-input bg-card pl-9 pr-12 text-sm placeholder:text-muted-foreground"
         />
+        {q && (
+          <button
+            type="button"
+            onClick={() => setQ("")}
+            aria-label="Clear action search"
+            className="press absolute right-0 top-0 grid size-11 place-items-center rounded-xl text-muted-foreground hover:text-foreground"
+          >
+            <X aria-hidden className="size-4" />
+          </button>
+        )}
       </div>
 
-      <div role="tablist" aria-label="Queue filter" className="flex gap-2 overflow-x-auto pb-1">
+      <div
+        role="tablist"
+        aria-label="Queue filter"
+        className="command-segment-rail overflow-x-auto"
+      >
         {TABS.map((t) => (
           <button
             key={t.key}
             role="tab"
             aria-selected={t.key === active.key}
             onClick={() => navigate({ search: (p) => ({ ...p, tab: t.key }) })}
-            className={cn(
-              "press min-h-11 shrink-0 rounded-full border px-4 text-sm font-medium",
-              t.key === active.key
-                ? "border-amber bg-amber/15 text-amber"
-                : "border-border bg-card text-muted-foreground",
-            )}
+            className={cn("command-segment", t.key === active.key && "command-segment--active")}
           >
             {t.label}
           </button>
         ))}
       </div>
 
-      <ul className="space-y-2">
+      <ul className="queue-board">
         {list.map((a) => (
-          <li key={a.id}>
+          <li key={a.id} className="queue-board__item" data-status={a.status}>
             <button
               type="button"
               onClick={() => navigate({ search: (p) => ({ ...p, action: a.id }) })}
-              className="press w-full surface-card p-4 text-left hover:bg-elevated"
+              className="queue-board__row press w-full text-left"
             >
               <div className="flex items-center gap-2">
                 <span className="mono-data text-xs font-semibold">{a.id}</span>
@@ -212,18 +230,18 @@ function QueuePage() {
                   </ol>
                 </section>
                 <div className="flex gap-2">
-                  <button
-                    type="button"
+                  <OpsButton
                     onClick={() => {
                       completeAction(selected.id);
                       navigate({ search: (p) => ({ ...p, action: "" }) });
                     }}
-                    className="press inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground"
+                    intent="brand"
+                    emphasis="solid"
+                    className="flex-1"
                   >
                     <Check aria-hidden className="size-4" /> Mark complete
-                  </button>
-                  <button
-                    type="button"
+                  </OpsButton>
+                  <OpsButton
                     onClick={() =>
                       navigate({
                         to: "/alerts",
@@ -236,10 +254,11 @@ function QueuePage() {
                         },
                       })
                     }
-                    className="press inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border px-4 text-sm font-medium"
+                    intent="neutral"
+                    emphasis="outline"
                   >
                     Linked alerts <ArrowUpRight aria-hidden className="size-4" />
-                  </button>
+                  </OpsButton>
                 </div>
               </div>
             </>

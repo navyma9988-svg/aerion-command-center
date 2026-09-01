@@ -288,6 +288,443 @@
   box-shadow: var(--shadow-card), var(--hairline);
 }
 
+/* Shared mission plane: quiet chrome with runway-derived guidance light. */
+.command-app {
+  position: relative;
+  isolation: isolate;
+}
+
+.command-app::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 80% 22rem at 50% -12rem,
+      color-mix(in oklab, var(--color-amber) 7%, transparent),
+      transparent 72%
+    ),
+    linear-gradient(
+      90deg,
+      transparent calc(50% - 1px),
+      color-mix(in oklab, var(--color-foreground) 2.2%, transparent) 50%,
+      transparent calc(50% + 1px)
+    );
+}
+
+.command-header {
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--color-amber) 3%, transparent),
+      transparent 28%,
+      transparent 72%,
+      color-mix(in oklab, var(--color-cyan) 2%, transparent)
+    ),
+    color-mix(in oklab, var(--color-background) 80%, transparent);
+  box-shadow: 0 12px 34px -30px color-mix(in oklab, var(--color-amber) 42%, transparent);
+}
+
+.command-viewport {
+  position: relative;
+  isolation: isolate;
+}
+
+.command-viewport::before {
+  content: "";
+  position: absolute;
+  inset: -1rem;
+  z-index: -1;
+  border-radius: 2rem;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 74% 13rem at 50% -4rem,
+    color-mix(in oklab, var(--color-amber) 3.5%, transparent),
+    transparent 76%
+  );
+}
+
+.command-rail {
+  box-shadow: 12px 0 34px -30px color-mix(in oklab, var(--color-amber) 38%, transparent);
+}
+
+.command-dock {
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in oklab, var(--color-foreground) 9%, var(--color-border));
+  background:
+    linear-gradient(180deg, color-mix(in oklab, white 3.5%, transparent), transparent 30%),
+    color-mix(in oklab, var(--color-card) 88%, transparent);
+  box-shadow:
+    0 20px 48px -22px color-mix(in oklab, black 88%, transparent),
+    0 -8px 32px -24px color-mix(in oklab, var(--color-amber) 38%, transparent),
+    var(--hairline);
+}
+
+.command-dock::before {
+  content: "";
+  position: absolute;
+  inset: 0.35rem 8% auto;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--color-amber) 36%, transparent),
+    transparent
+  );
+}
+
+.command-dock .nav-command-active::after {
+  content: "";
+  position: absolute;
+  bottom: 0.22rem;
+  left: 50%;
+  width: 1rem;
+  height: 1px;
+  transform: translateX(-50%);
+  background: var(--color-amber);
+  box-shadow: 0 0 10px color-mix(in oklab, var(--color-amber) 72%, transparent);
+}
+
+.command-page-header {
+  min-height: 50px;
+}
+
+.command-page-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.2rem;
+  color: var(--color-amber);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.command-live-dot {
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 999px;
+  background: var(--color-success);
+  box-shadow: 0 0 10px color-mix(in oklab, var(--color-success) 76%, transparent);
+}
+
+.command-search-field {
+  border-radius: var(--radius-md);
+  box-shadow:
+    var(--hairline),
+    0 12px 26px -22px color-mix(in oklab, var(--color-amber) 42%, transparent);
+}
+
+.command-search-field::after {
+  content: "";
+  position: absolute;
+  left: 0.8rem;
+  right: 0.8rem;
+  bottom: -1px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--color-amber) 45%, transparent),
+    transparent 68%
+  );
+}
+
+.command-segment-rail {
+  display: flex;
+  width: 100%;
+  gap: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 0.22rem;
+  background: color-mix(in oklab, var(--color-card) 92%, transparent);
+  box-shadow: var(--hairline);
+}
+
+.command-segment {
+  position: relative;
+  min-height: 44px;
+  flex: 1 0 auto;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding-inline: 0.9rem;
+  color: var(--color-muted-foreground);
+  background: transparent;
+  font-size: 0.75rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.command-segment:hover {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-elevated) 72%, transparent);
+}
+
+.command-segment--active {
+  border-color: color-mix(in oklab, var(--color-amber) 24%, transparent);
+  color: var(--color-amber);
+  background:
+    linear-gradient(
+      155deg,
+      color-mix(in oklab, var(--color-amber) 11%, transparent),
+      transparent 70%
+    ),
+    color-mix(in oklab, var(--color-elevated) 82%, transparent);
+  box-shadow: var(--glow-brand-soft), var(--hairline);
+}
+
+.command-segment--active::after {
+  content: "";
+  position: absolute;
+  inset: auto 28% 0;
+  height: 1px;
+  background: var(--color-amber);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--color-amber) 65%, transparent);
+}
+
+/* Queue signature: one sequenced action register instead of stacked cards. */
+.queue-command-deck,
+.timeline-command-deck {
+  width: 100%;
+  max-width: 52rem;
+  margin-inline: auto;
+}
+
+.queue-command-count {
+  display: grid;
+  flex: none;
+  min-width: 4.6rem;
+  justify-items: end;
+  color: var(--color-muted-foreground);
+  text-transform: uppercase;
+}
+
+.queue-command-count strong {
+  color: var(--color-amber);
+  font-size: 1.5rem;
+  line-height: 1;
+  text-shadow: 0 0 16px color-mix(in oklab, var(--color-amber) 32%, transparent);
+}
+
+.queue-command-count span {
+  margin-top: 0.22rem;
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.queue-board {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-border);
+  box-shadow: var(--shadow-card), var(--hairline);
+}
+
+.queue-board__item {
+  --queue-signal: var(--color-muted-foreground);
+  position: relative;
+  min-width: 0;
+  background: var(--color-card);
+}
+
+.queue-board__item[data-status="overdue"] {
+  --queue-signal: var(--color-coral);
+}
+
+.queue-board__item[data-status="due_today"],
+.queue-board__item[data-status="closing"] {
+  --queue-signal: var(--color-amber);
+}
+
+.queue-board__item[data-status="complete"] {
+  --queue-signal: var(--color-success);
+}
+
+.queue-board__item::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 0.8rem;
+  bottom: 0.8rem;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background: color-mix(in oklab, var(--queue-signal) 78%, transparent);
+  box-shadow: 0 0 12px color-mix(in oklab, var(--queue-signal) 48%, transparent);
+  pointer-events: none;
+}
+
+.queue-board__row {
+  min-height: 108px;
+  padding: 1rem 1rem 1rem 1.1rem;
+  background:
+    linear-gradient(
+      100deg,
+      color-mix(in oklab, var(--queue-signal) 5%, transparent),
+      transparent 24%
+    ),
+    var(--color-card);
+}
+
+.queue-board__row:hover {
+  background:
+    linear-gradient(
+      100deg,
+      color-mix(in oklab, var(--queue-signal) 8%, transparent),
+      transparent 32%
+    ),
+    color-mix(in oklab, var(--color-elevated) 76%, var(--color-card));
+}
+
+.queue-board > .empty-state {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Live signature: a continuous event recorder with one shared spine. */
+.timeline-speed-console {
+  display: flex;
+  min-height: 68px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1px solid color-mix(in oklab, var(--color-cyan) 12%, var(--color-border));
+  border-radius: var(--radius-lg);
+  padding: 0.65rem;
+  background:
+    linear-gradient(
+      110deg,
+      color-mix(in oklab, var(--color-cyan) 4%, transparent),
+      transparent 42%
+    ),
+    var(--color-card);
+  box-shadow: var(--shadow-card), var(--hairline);
+}
+
+.timeline-speed-bank {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 13rem;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-border);
+}
+
+.timeline-speed-button {
+  min-width: 44px;
+  min-height: 44px;
+  flex: 1;
+  border: 0;
+  color: var(--color-muted-foreground);
+  background: color-mix(in oklab, var(--color-elevated) 65%, var(--color-card));
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.timeline-speed-button.is-active {
+  color: var(--color-cyan);
+  background: color-mix(in oklab, var(--color-cyan) 10%, var(--color-elevated));
+  box-shadow:
+    inset 0 -2px 0 var(--color-cyan),
+    0 0 18px -10px color-mix(in oklab, var(--color-cyan) 60%, transparent);
+}
+
+.timeline-feed-status {
+  min-height: 44px;
+  border: 1px solid;
+  border-radius: var(--radius-md);
+  padding: 0.45rem 0.75rem;
+  box-shadow: var(--hairline);
+}
+
+.timeline-board {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-border);
+  box-shadow: var(--shadow-card), var(--hairline);
+}
+
+.timeline-board__spine {
+  position: absolute;
+  z-index: 2;
+  left: 1rem;
+  top: 1.25rem;
+  bottom: 1.25rem;
+  width: 1px;
+  background: linear-gradient(
+    var(--color-cyan),
+    color-mix(in oklab, var(--color-border) 76%, transparent) 26%,
+    color-mix(in oklab, var(--color-border) 76%, transparent) 74%,
+    var(--color-amber)
+  );
+  opacity: 0.42;
+}
+
+.timeline-board__item {
+  position: relative;
+  min-width: 0;
+  background: var(--color-card);
+}
+
+.timeline-board__item + .timeline-board__item {
+  border-top: 1px solid var(--color-border);
+}
+
+.timeline-board__marker {
+  position: absolute;
+  z-index: 3;
+  left: 1rem;
+  top: 1.35rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  transform: translateX(-50%);
+  border: 2px solid var(--color-card);
+  border-radius: 999px;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.timeline-board__row {
+  min-height: 132px;
+  padding: 1rem 0.9rem 1rem 2rem;
+  background: var(--color-card);
+}
+
+.timeline-board__row:hover {
+  background: color-mix(in oklab, var(--color-elevated) 78%, var(--color-card));
+}
+
+.timeline-board__row.is-new {
+  background:
+    linear-gradient(
+      100deg,
+      color-mix(in oklab, var(--color-cyan) 9%, transparent),
+      transparent 36%
+    ),
+    var(--color-card);
+  box-shadow: inset 2px 0 0 color-mix(in oklab, var(--color-cyan) 68%, transparent);
+}
+
+.timeline-board > .empty-state {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 /* Brief signature: a compact pre-shift compiler, not a generic document form. */
 .brief-command-deck {
   width: 100%;
@@ -976,6 +1413,7 @@
 
 /* Shared command controls: rectangular, instrument-like, and explicit about intent. */
 .ops-button {
+  --ops-signal: var(--color-muted-foreground);
   display: inline-flex;
   min-height: 44px;
   align-items: center;
@@ -989,7 +1427,69 @@
   font-weight: 650;
   line-height: 1;
   cursor: pointer;
+  isolation: isolate;
+  overflow: hidden;
   box-shadow: var(--hairline);
+}
+
+.ops-button[data-intent="brand"],
+.ops-button[data-intent="warning"] {
+  --ops-signal: var(--color-amber);
+}
+
+.ops-button[data-intent="info"] {
+  --ops-signal: var(--color-cyan);
+}
+
+.ops-button[data-intent="success"] {
+  --ops-signal: var(--color-success);
+}
+
+.ops-button[data-intent="danger"] {
+  --ops-signal: var(--color-coral);
+}
+
+.ops-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-112%);
+  background: linear-gradient(
+    105deg,
+    transparent 22%,
+    color-mix(in oklab, white 15%, transparent) 50%,
+    transparent 78%
+  );
+  transition:
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease-out;
+}
+
+.ops-button::after {
+  content: "";
+  position: absolute;
+  left: 0.28rem;
+  top: 28%;
+  bottom: 28%;
+  width: 1px;
+  border-radius: 1px;
+  background: var(--ops-signal);
+  box-shadow: 0 0 9px color-mix(in oklab, var(--ops-signal) 62%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ops-button[data-intent]:not([data-intent="neutral"]):not([data-emphasis="ghost"])::after {
+  opacity: 0.72;
+}
+
+.ops-button:hover:not(:disabled)::before,
+.ops-button:focus-visible::before {
+  opacity: 1;
+  transform: translateX(112%);
 }
 
 .ops-button[data-size="compact"] {

@@ -92,7 +92,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className={cn("min-h-dvh bg-background", density === "compact" && "text-[0.94rem]")}>
+    <div
+      className={cn(
+        "command-app min-h-dvh bg-background",
+        density === "compact" && "text-[0.94rem]",
+      )}
+    >
       <SplashMoment />
       <a
         href="#main"
@@ -101,7 +106,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         Skip to content
       </a>
 
-      <header className="safe-top fixed inset-x-0 top-0 z-[var(--z-header)] border-b border-border bg-background/80 backdrop-blur-xl lg:pl-[4.5rem]">
+      <header className="command-header safe-top fixed inset-x-0 top-0 z-[var(--z-header)] border-b border-border bg-background/80 backdrop-blur-xl lg:pl-[4.5rem]">
         <div className="mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5">
           <div className="flex min-w-0 items-center gap-2.5">
             <BrandMark className="size-9 shrink-0" />
@@ -197,7 +202,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Desktop icon rail */}
       <nav
         aria-label="Sections"
-        className="fixed inset-y-0 left-0 z-[var(--z-header)] hidden w-[4.5rem] flex-col items-center gap-1.5 border-r border-border bg-sidebar py-4 lg:flex"
+        className="command-rail fixed inset-y-0 left-0 z-[var(--z-header)] hidden w-[4.5rem] flex-col items-center gap-1.5 border-r border-border bg-sidebar py-4 lg:flex"
       >
         <BrandMark className="mb-4 size-9" />
         {NAV.map(({ to, label, icon: Icon }) => (
@@ -248,7 +253,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <main
         id="main"
-        className="mx-auto max-w-5xl px-4 pb-32 pt-24 lg:pb-12 lg:pl-[5.5rem] lg:pr-6"
+        className="command-main mx-auto max-w-5xl px-4 pb-32 pt-24 lg:pb-12 lg:pl-[5.5rem] lg:pr-6"
         onTouchStart={(e) => {
           if (window.scrollY <= 0) pullStart.current = e.touches[0]?.clientY ?? null;
         }}
@@ -260,7 +265,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         onTouchEnd={finishPull}
         onTouchCancel={finishPull}
       >
-        <div key={pathname} className="route-stage">
+        <div key={pathname} className="command-viewport route-stage">
           {children}
         </div>
       </main>
@@ -270,7 +275,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         aria-label="Sections"
         className="safe-bottom fixed inset-x-0 bottom-0 z-[var(--z-header)] px-3 pb-3 lg:hidden"
       >
-        <ul className="mx-auto flex max-w-lg items-center justify-between gap-0.5 rounded-[22px] border border-border bg-card/85 p-1.5 shadow-[var(--shadow-card)] backdrop-blur-xl">
+        <ul className="command-dock mx-auto flex max-w-lg items-center justify-between gap-0.5 rounded-[22px] border border-border bg-card/85 p-1.5 shadow-[var(--shadow-card)] backdrop-blur-xl">
           {NAV.map(({ to, label, icon: Icon }) => (
             <li key={to} className="min-w-0 flex-1">
               <Link

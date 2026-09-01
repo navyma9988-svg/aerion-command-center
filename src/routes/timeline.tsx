@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { useOps } from "@/lib/ops-store";
 import { useEventLink } from "@/components/notification-center";
 import { CHANGE_LABEL, EVENT_KIND_LABEL, type EventKind } from "@/lib/airfield-data";
+import { OpsButton } from "@/components/ops-button";
 
 const KINDS: (EventKind | "all")[] = ["all", "weather", "runway", "ramp", "flight", "action"];
 const SPEEDS = [0.5, 1, 2, 4];
@@ -72,19 +73,24 @@ function TimelinePage() {
   );
 
   return (
-    <div className="space-y-4">
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+    <div className="timeline-command-deck space-y-4">
+      <header className="command-page-header grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <div className="min-w-0">
+          <p className="command-page-eyebrow">
+            <span className="command-live-dot" aria-hidden /> Event surveillance
+          </p>
           <h1 className="text-[26px] font-bold tracking-tight">Live timeline</h1>
           <p className="text-xs text-muted-foreground">
             {streaming ? `Streaming ${speed}×` : "Paused"} · {events.length} events · {clock} CT
           </p>
         </div>
-        <button
-          type="button"
+        <OpsButton
           onClick={() => setStreaming(!streaming)}
           aria-pressed={!streaming}
-          className="press inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-border px-4 text-xs font-medium"
+          intent={streaming ? "info" : "brand"}
+          emphasis="outline"
+          size="compact"
+          className="shrink-0"
         >
           {streaming ? (
             <Pause aria-hidden className="size-4" />
@@ -92,10 +98,10 @@ function TimelinePage() {
             <Play aria-hidden className="size-4" />
           )}
           {streaming ? "Pause feed" : "Resume feed"}
-        </button>
+        </OpsButton>
       </header>
 
-      <div className="flex flex-wrap items-center gap-2 surface-card p-4">
+      <div className="timeline-speed-console">
         <Gauge aria-hidden className="size-4 shrink-0 text-muted-foreground" />
         <span
           id="sim-speed-label"
@@ -103,19 +109,14 @@ function TimelinePage() {
         >
           Simulation speed
         </span>
-        <div role="group" aria-labelledby="sim-speed-label" className="ml-auto flex gap-1.5">
+        <div role="group" aria-labelledby="sim-speed-label" className="timeline-speed-bank">
           {SPEEDS.map((s) => (
             <button
               key={s}
               type="button"
               aria-pressed={speed === s}
               onClick={() => setSpeed(s)}
-              className={cn(
-                "press mono-data min-h-11 min-w-11 rounded-full border px-3 text-xs font-semibold",
-                speed === s
-                  ? "border-cyan bg-cyan/15 text-cyan"
-                  : "border-border text-muted-foreground",
-              )}
+              className={cn("timeline-speed-button press mono-data", speed === s && "is-active")}
             >
               {s}×
             </button>
@@ -126,7 +127,7 @@ function TimelinePage() {
       <div
         role="status"
         className={cn(
-          "flex items-center gap-2 rounded-xl border px-3 py-2 text-xs",
+          "timeline-feed-status flex items-center gap-2 text-xs",
           newIds.length
             ? "border-cyan/50 bg-cyan/10 text-cyan"
             : "border-border bg-card text-muted-foreground",
@@ -153,7 +154,7 @@ function TimelinePage() {
       </div>
 
       <div
-        className="flex gap-2 overflow-x-auto pb-1"
+        className="command-segment-rail overflow-x-auto"
         role="group"
         aria-label="Filter timeline by event type"
       >
@@ -163,20 +164,15 @@ function TimelinePage() {
             type="button"
             aria-pressed={kind === k}
             onClick={() => setKind(k)}
-            className={cn(
-              "press min-h-11 shrink-0 rounded-full border px-4 text-xs font-medium",
-              kind === k
-                ? "border-amber bg-amber/15 text-amber"
-                : "border-border bg-card text-muted-foreground",
-            )}
+            className={cn("command-segment", kind === k && "command-segment--active")}
           >
             {k === "all" ? "All events" : EVENT_KIND_LABEL[k]}
           </button>
         ))}
       </div>
 
-      <ol aria-label="Operations event stream" className="relative space-y-2 pl-4">
-        <span aria-hidden className="absolute inset-y-2 left-0 w-px bg-border" />
+      <ol aria-label="Operations event stream" className="timeline-board">
+        <span aria-hidden className="timeline-board__spine" />
         {list.map((e) => (
           <TimelineRow key={e.id} eventId={e.id} isNew={newIds.includes(e.id)} />
         ))}
@@ -212,21 +208,22 @@ function TimelineRow({ eventId, isNew }: { eventId: string; isNew: boolean }) {
           : "text-muted-foreground";
 
   return (
-    <li className="relative">
+    <li className="timeline-board__item">
       <span
         aria-hidden
         className={cn(
-          "absolute -left-4 top-5 size-2 -translate-x-1/2 rounded-full",
-          e.severity === "p1" ? "bg-coral" : e.severity === "p2" ? "bg-amber" : "bg-cyan",
+          "timeline-board__marker",
+          e.severity === "p1"
+            ? "bg-coral text-coral"
+            : e.severity === "p2"
+              ? "bg-amber text-amber"
+              : "bg-cyan text-cyan",
         )}
       />
       <button
         type="button"
         onClick={() => jump(e)}
-        className={cn(
-          "press w-full rounded-xl border bg-card p-3 text-left",
-          isNew ? "border-cyan/60 bg-cyan/5" : "border-border",
-        )}
+        className={cn("timeline-board__row press w-full text-left", isNew && "is-new")}
       >
         <span className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wide text-muted-foreground">
           <span>{e.at} CT</span>

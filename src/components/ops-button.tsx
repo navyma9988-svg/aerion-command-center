@@ -30,7 +30,7 @@ export const OpsButton = forwardRef<HTMLButtonElement, OpsButtonProps>(function 
       data-intent={intent}
       data-emphasis={emphasis}
       data-size={size}
-      className={cn("ops-button", className)}
+      className={cn("relative ops-button", className)}
       onClick={onClick}
       {...props}
     />

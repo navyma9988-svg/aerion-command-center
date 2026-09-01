@@ -41,7 +41,7 @@ Native select and time popups are intentional where the operating-system popup i
 ## Component behavior
 
 - Enabled controls expose hover, focus-visible, pressed, selected, and disabled states through the shared tokens.
-- Luminous edge treatments remain token-derived and state-bound: gold identifies active/brand interaction, while semantic glows appear only on matching operational status.
+- Luminous edge treatments remain token-derived and state-bound: gold identifies active/brand interaction, while semantic glows appear only on matching operational status or semantic button intent. Queue and Live share continuous board geometry rather than duplicating screen-local card styles.
 - Buttons and icon buttons retain at least 44×44px targets on mobile. Icon-only buttons have accessible names.
 - Textareas use the shared fixed-size `resize-none` rule and enough rows for their task.
 - The branded launch moment, skeleton shimmer, empty state, drawer, and notification patterns are shared rather than duplicated per route.
