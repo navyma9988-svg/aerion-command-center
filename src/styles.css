@@ -94,6 +94,8 @@
 
   --shadow-card: 0 1px 2px oklch(0 0 0 / 0.4), 0 8px 24px -12px oklch(0 0 0 / 0.7);
   --hairline: inset 0 1px 0 oklch(1 0 0 / 0.05);
+  --glow-brand-soft: 0 0 24px -14px color-mix(in oklab, var(--color-amber) 68%, transparent);
+  --glow-brand-active: 0 0 32px -13px color-mix(in oklab, var(--color-amber) 78%, transparent);
 
   /* Global overlay ownership — never bypass with arbitrary page-level values. */
   --z-sticky: 100;
@@ -144,6 +146,8 @@
 
   --shadow-card: 0 1px 2px oklch(0.2 0.02 262 / 0.06), 0 10px 24px -16px oklch(0.2 0.02 262 / 0.25);
   --hairline: inset 0 1px 0 oklch(1 0 0 / 0.6);
+  --glow-brand-soft: 0 0 20px -15px color-mix(in oklab, var(--color-amber) 38%, transparent);
+  --glow-brand-active: 0 0 28px -15px color-mix(in oklab, var(--color-amber) 46%, transparent);
 }
 
 @layer base {
@@ -284,6 +288,189 @@
   box-shadow: var(--shadow-card), var(--hairline);
 }
 
+/* Pulse signature: edge-lit avionics modules with a strict glow budget. */
+.pulse-command-deck {
+  background: radial-gradient(
+    ellipse 92% 30rem at 50% -4rem,
+    color-mix(in oklab, var(--color-amber) 5%, transparent),
+    transparent 72%
+  );
+}
+
+.pulse-hero {
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--color-amber) 3.5%, transparent),
+      transparent 28%
+    ),
+    var(--color-card);
+  box-shadow: var(--shadow-card), var(--hairline), var(--glow-brand-soft);
+}
+
+.pulse-hero__metric {
+  text-shadow: 0 0 20px color-mix(in oklab, var(--color-amber) 32%, transparent);
+}
+
+.pulse-icon-button {
+  border-color: color-mix(in oklab, var(--color-foreground) 9%, var(--color-border));
+  background: color-mix(in oklab, var(--color-elevated) 52%, transparent);
+}
+
+.pulse-metric-console {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: color-mix(in oklab, var(--color-foreground) 7%, var(--color-card));
+  box-shadow: var(--shadow-card), var(--hairline), var(--glow-brand-soft);
+}
+
+.pulse-stat-tile {
+  --pulse-signal: var(--color-muted-foreground);
+  position: relative;
+  min-height: 126px;
+  overflow: hidden;
+  padding: 1rem 1.05rem;
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--pulse-signal) 6%, transparent),
+      transparent 42%
+    ),
+    var(--color-card);
+}
+
+.pulse-stat-tile[data-tone="coral"] {
+  --pulse-signal: var(--color-coral);
+}
+
+.pulse-stat-tile[data-tone="amber"] {
+  --pulse-signal: var(--color-amber);
+}
+
+.pulse-stat-tile[data-tone="cyan"] {
+  --pulse-signal: var(--color-cyan);
+}
+
+.pulse-stat-tile::before {
+  content: "";
+  position: absolute;
+  left: 1rem;
+  top: 0;
+  width: 2.8rem;
+  height: 1px;
+  background: color-mix(in oklab, var(--pulse-signal) 78%, transparent);
+  box-shadow: 0 0 12px color-mix(in oklab, var(--pulse-signal) 58%, transparent);
+}
+
+.pulse-stat-tile::after {
+  content: "";
+  position: absolute;
+  right: 0.65rem;
+  top: 0.65rem;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-right: 1px solid color-mix(in oklab, var(--pulse-signal) 35%, transparent);
+  border-top: 1px solid color-mix(in oklab, var(--pulse-signal) 35%, transparent);
+}
+
+.pulse-panel {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      150deg,
+      color-mix(in oklab, var(--color-amber) 1.8%, transparent),
+      transparent 34%
+    ),
+    var(--color-card);
+}
+
+.pulse-panel::before {
+  content: "";
+  position: absolute;
+  left: 1.25rem;
+  right: 1.25rem;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--color-amber) 24%, transparent),
+    color-mix(in oklab, var(--color-foreground) 8%, transparent),
+    transparent 76%
+  );
+  pointer-events: none;
+}
+
+.pulse-panel__eyebrow {
+  margin-bottom: 0.15rem;
+  color: var(--color-cyan);
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: 0.09em;
+}
+
+.pulse-link-action {
+  border: 1px solid color-mix(in oklab, var(--color-amber) 22%, var(--color-border));
+  border-radius: var(--radius-md);
+  padding-inline: 0.75rem 0.55rem;
+  background: color-mix(in oklab, var(--color-amber) 5%, transparent);
+  box-shadow: var(--glow-brand-soft);
+}
+
+.pulse-link-action:hover {
+  border-color: color-mix(in oklab, var(--color-amber) 38%, var(--color-border));
+  background: color-mix(in oklab, var(--color-amber) 9%, transparent);
+}
+
+.pulse-event-row {
+  display: flex;
+  min-height: 44px;
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 0.25rem;
+  text-align: left;
+}
+
+.pulse-runway {
+  --runway-signal: var(--color-success);
+  box-shadow:
+    inset 2px 0 0 color-mix(in oklab, var(--runway-signal) 66%, transparent),
+    inset 0 1px 0 color-mix(in oklab, white 3%, transparent),
+    0 0 18px -15px color-mix(in oklab, var(--runway-signal) 54%, transparent);
+}
+
+.pulse-runway[data-status="notam"] {
+  --runway-signal: var(--color-amber);
+}
+
+.pulse-runway[data-status="closed"] {
+  --runway-signal: var(--color-coral);
+}
+
+.pulse-disclosure {
+  border: 1px solid transparent;
+  box-shadow: inset 0 1px 0 color-mix(in oklab, white 3%, transparent);
+}
+
+.pulse-disclosure:hover,
+.pulse-disclosure[open] {
+  border-color: color-mix(in oklab, var(--color-amber) 20%, var(--color-border));
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, white 5%, transparent),
+    var(--glow-brand-soft);
+}
+
+@media (min-width: 640px) {
+  .pulse-metric-console {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 /* Shared command controls: rectangular, instrument-like, and explicit about intent. */
 .ops-button {
   display: inline-flex;
@@ -342,6 +529,7 @@
   border-color: color-mix(in oklab, var(--color-amber) 26%, var(--color-border));
   color: var(--color-amber);
   background: color-mix(in oklab, var(--color-amber) 7%, var(--color-card));
+  box-shadow: var(--hairline), var(--glow-brand-soft);
 }
 
 .ops-button[data-emphasis="outline"][data-intent="info"] {
@@ -382,6 +570,21 @@
   color: var(--color-primary-foreground);
   border-color: transparent;
   background-color: color-mix(in oklab, var(--color-primary) 91%, white);
+}
+
+.ops-button[data-emphasis="outline"][data-intent="brand"]:hover:not(:disabled),
+.ops-button[data-emphasis="outline"][data-intent="warning"]:hover:not(:disabled) {
+  border-color: color-mix(in oklab, var(--color-amber) 42%, var(--color-border));
+  color: var(--color-amber);
+  background: color-mix(in oklab, var(--color-amber) 11%, var(--color-card));
+  box-shadow: var(--hairline), var(--glow-brand-active);
+}
+
+.nav-command-active {
+  border: 1px solid color-mix(in oklab, var(--color-amber) 18%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--color-amber) 10%, transparent),
+    var(--glow-brand-soft);
 }
 
 .ops-button:disabled {

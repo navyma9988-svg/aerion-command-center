@@ -6,6 +6,7 @@ import {
   ArrowUpRight,
   Check,
   ChevronRight,
+  ChevronDown,
   RefreshCw,
   TriangleAlert,
   Wind,
@@ -76,10 +77,10 @@ function PulsePage() {
   };
 
   return (
-    <div className="stagger-in space-y-4">
+    <div className="pulse-command-deck stagger-in space-y-4">
       <section
         className={cn(
-          "surface-card relative overflow-hidden p-3",
+          "pulse-hero surface-card relative overflow-hidden p-3",
           (simulation || openAlerts.some((a) => a.severity === "p1")) && "hero-degraded",
         )}
       >
@@ -114,7 +115,7 @@ function PulsePage() {
             </h1>
           </div>
           <p className="flex items-end gap-2 text-right">
-            <span className="mono-data text-[46px] font-bold leading-[0.82] tracking-[-0.06em] text-amber">
+            <span className="pulse-hero__metric mono-data text-[46px] font-bold leading-[0.82] tracking-[-0.06em] text-amber">
               <CountUp value={counts.open} />
             </span>
             <span className="pb-0.5 text-[10px] font-semibold uppercase leading-tight tracking-[0.12em] text-muted-foreground">
@@ -145,6 +146,7 @@ function PulsePage() {
             intent="neutral"
             emphasis="ghost"
             size="icon"
+            className="pulse-icon-button"
             aria-label="Refresh program data"
           >
             <RefreshCw aria-hidden className={cn(syncing && "animate-spin")} />
@@ -154,6 +156,7 @@ function PulsePage() {
             intent="brand"
             emphasis="outline"
             size="icon"
+            className="pulse-icon-button"
             aria-label="Open mission actions"
           >
             <Zap aria-hidden />
@@ -161,7 +164,7 @@ function PulsePage() {
         </div>
       </section>
 
-      <section aria-labelledby="status-h" className="grid grid-cols-2 gap-3">
+      <section aria-labelledby="status-h" className="pulse-metric-console">
         <h2 id="status-h" className="sr-only">
           Action status
         </h2>
@@ -176,13 +179,16 @@ function PulsePage() {
         <StatTile label="Closing" value={counts.closing} sub="sign-off pending" tone="cyan" />
       </section>
 
-      <section aria-labelledby="disrupt-h" className="surface-card">
+      <section aria-labelledby="disrupt-h" className="pulse-panel surface-card">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-          <h2 id="disrupt-h">Open disruptions</h2>
+          <div className="min-w-0">
+            <p className="pulse-panel__eyebrow mono-data">ACTIVE BOARD · {openAlerts.length}</p>
+            <h2 id="disrupt-h">Open disruptions</h2>
+          </div>
           <Link
             to="/alerts"
             search={{ item: "", status: "open", severity: "", terminal: "", runway: "" }}
-            className="press inline-flex min-h-11 items-center gap-1 text-[13px] font-semibold text-amber"
+            className="pulse-link-action press inline-flex min-h-11 items-center gap-1 text-[13px] font-semibold text-amber"
           >
             Triage <ChevronRight aria-hidden className="size-4" />
           </Link>
@@ -200,7 +206,7 @@ function PulsePage() {
         ) : (
           <ul className="mt-1 divide-y divide-border">
             {openAlerts.slice(0, 3).map((a) => (
-              <li key={a.id} className="row-tap">
+              <li key={a.id} className="pulse-event-row">
                 <span
                   className={cn(
                     "grid size-9 shrink-0 place-items-center rounded-full",
@@ -227,7 +233,7 @@ function PulsePage() {
         )}
       </section>
 
-      <section aria-labelledby="aging-h" className="surface-card">
+      <section aria-labelledby="aging-h" className="pulse-panel surface-card">
         <h2 id="aging-h">Overdue aging</h2>
         <ul className="mt-3 space-y-3">
           {counts.overdue.map((a, i) => {
@@ -250,7 +256,7 @@ function PulsePage() {
         </ul>
       </section>
 
-      <section aria-labelledby="load-h" className="surface-card">
+      <section aria-labelledby="load-h" className="pulse-panel surface-card">
         <h2 id="load-h">Workload by owner</h2>
         <ul className="mt-3 space-y-3">
           {workload.map((w) => (
@@ -282,13 +288,14 @@ function PulsePage() {
         </p>
       </section>
 
-      <section aria-labelledby="rw-h" className="surface-card">
+      <section aria-labelledby="rw-h" className="pulse-panel surface-card">
         <h2 id="rw-h">Runway status</h2>
         <ul className="mt-3 grid gap-2 text-[13px] sm:grid-cols-2">
           {RUNWAYS.map((r) => (
             <li
               key={r.id}
-              className="flex min-h-11 items-center justify-between rounded-xl bg-elevated px-3.5 py-2"
+              data-status={r.status}
+              className="pulse-runway flex min-h-11 items-center justify-between rounded-xl bg-elevated px-3.5 py-2"
             >
               <span className="mono-data font-medium">{r.id}</span>
               <span
@@ -306,21 +313,27 @@ function PulsePage() {
         </ul>
       </section>
 
-      <section aria-labelledby="th-h" className="surface-card">
+      <section aria-labelledby="th-h" className="pulse-panel surface-card">
         <h2 id="th-h">Terminal health</h2>
         <ul className="mt-3 space-y-2">
           {TERMINAL_HEALTH.map((t) => (
             <li key={t.terminal}>
-              <details className="group rounded-2xl bg-elevated">
+              <details className="pulse-disclosure group rounded-2xl bg-elevated">
                 <summary className="press flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3.5 py-2.5 text-[15px]">
                   <span className="font-semibold">Terminal {t.terminal}</span>
-                  <span className="text-[13px] text-muted-foreground">
-                    <span className="mono-data">
-                      {t.standsAvailable}/{t.standsTotal}
-                    </span>{" "}
-                    stands
-                    <span className="dot-sep" />
-                    <span className="mono-data">{t.securityWaitMin}</span> min
+                  <span className="flex items-center gap-2 text-[13px] text-muted-foreground">
+                    <span>
+                      <span className="mono-data">
+                        {t.standsAvailable}/{t.standsTotal}
+                      </span>{" "}
+                      stands
+                      <span className="dot-sep" />
+                      <span className="mono-data">{t.securityWaitMin}</span> min
+                    </span>
+                    <ChevronDown
+                      aria-hidden
+                      className="size-4 shrink-0 transition-transform duration-200 group-open:rotate-180"
+                    />
                   </span>
                 </summary>
                 <div className="space-y-1 px-3.5 pb-3.5 text-[13px] text-muted-foreground">
@@ -359,7 +372,7 @@ function StatTile({
   tone: "coral" | "amber" | "cyan" | "muted";
 }) {
   return (
-    <div className="surface-card">
+    <div className="pulse-stat-tile" data-tone={tone}>
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
       <p
         className={cn(

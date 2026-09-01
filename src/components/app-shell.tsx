@@ -208,7 +208,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             aria-label={label}
             className="press group relative grid size-11 place-items-center rounded-xl text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
             activeOptions={{ exact: to === "/" }}
-            activeProps={{ className: "bg-amber/12 text-amber" }}
+            activeProps={{ className: "nav-command-active bg-amber/12 text-amber" }}
           >
             <Icon aria-hidden className="size-5" />
             <span className="pointer-events-none absolute left-[3.5rem] z-[var(--z-popover)] hidden whitespace-nowrap rounded-lg bg-elevated px-2 py-1 text-xs font-medium text-foreground shadow-md group-hover:block">
@@ -278,7 +278,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 activeOptions={{ exact: to === "/" }}
                 activeProps={{
                   "aria-current": "page",
-                  className: "dock-active text-amber bg-amber/12",
+                  className: "dock-active nav-command-active text-amber bg-amber/12",
                 }}
                 inactiveProps={{ className: "text-muted-foreground" }}
                 className="press relative flex min-h-[46px] flex-col items-center justify-center gap-0.5 rounded-2xl px-0.5 py-1.5 text-[10px] font-medium"
